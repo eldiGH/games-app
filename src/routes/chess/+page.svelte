@@ -1,103 +1,73 @@
 <script lang="ts">
-	enum Piece {
-		ROOK = 'rook',
-		QUEEN = 'queen',
-		KING = 'king',
-		PAWN = 'pawn',
-		BISHOP = 'bishop',
-		KNIGHT = 'knight'
-	}
+	import type { ChessBoard } from '$lib/types';
+	import { getPiecesFromFenString } from '$lib/helpers';
+	import { STARTER_CHESS_FEN } from '$lib/constants';
+	import type { BoardData, BoardItem } from '$lib/Board/types';
+	import Board from '$lib/Board/Board.svelte';
 
-	enum PieceColor {
-		WHITE = 'white',
-		BLACK = 'black'
-	}
+	let chessBoard: ChessBoard = getPiecesFromFenString(STARTER_CHESS_FEN);
+	let isWhiteTurn = true;
 
-	interface Field {
-		piece: Piece;
-		color: PieceColor;
-	}
+	let isDragging: boolean = false;
 
-	let field: (Field | null)[][] = [
-		[
-			{ piece: Piece.ROOK, color: PieceColor.BLACK },
-			{ piece: Piece.KNIGHT, color: PieceColor.BLACK },
-			{ piece: Piece.BISHOP, color: PieceColor.BLACK },
-			{ piece: Piece.QUEEN, color: PieceColor.BLACK },
-			{ piece: Piece.KING, color: PieceColor.BLACK },
-			{ piece: Piece.BISHOP, color: PieceColor.BLACK },
-			{ piece: Piece.KNIGHT, color: PieceColor.BLACK },
-			{ piece: Piece.ROOK, color: PieceColor.BLACK }
-		],
-		[
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK },
-			{ piece: Piece.PAWN, color: PieceColor.BLACK }
-		],
-		[null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null],
-		[
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE },
-			{ piece: Piece.PAWN, color: PieceColor.WHITE }
-		],
-		[
-			{ piece: Piece.ROOK, color: PieceColor.WHITE },
-			{ piece: Piece.KNIGHT, color: PieceColor.WHITE },
-			{ piece: Piece.BISHOP, color: PieceColor.WHITE },
-			{ piece: Piece.QUEEN, color: PieceColor.WHITE },
-			{ piece: Piece.KING, color: PieceColor.WHITE },
-			{ piece: Piece.BISHOP, color: PieceColor.WHITE },
-			{ piece: Piece.KNIGHT, color: PieceColor.WHITE },
-			{ piece: Piece.ROOK, color: PieceColor.WHITE }
-		]
-	];
+	$: boardData = chessBoard.map((ranks) =>
+		ranks.map((boardItem) => ({
+			imgUrl: boardItem.piece
+				? `/svg/${boardItem.piece.color}_${boardItem.piece.type}.svg`
+				: undefined,
+			draggable: boardItem.piece ? true : false,
+			// (isWhiteTurn && piece.color === PieceColor.WHITE) ||
+			// (!isWhiteTurn && piece.color === PieceColor.BLACK),
+			marked: isDragging && boardItem.cellOptions?.marked
+		}))
+	);
+
+	const handleMove = (initialX: number, initialY: number, newX: number, newY: number) => {
+		const boardData = chessBoard[initialY][initialX];
+		if (!boardData?.piece) return;
+
+		const { piece } = boardData;
+
+		if (piece) console.log(piece.availableMoves(piece, chessBoard));
+
+		if (!piece.canMoveTo(newX, newY, piece, chessBoard)) return;
+
+		chessBoard[newY][newX].piece = piece;
+		chessBoard[initialY][initialX].piece = undefined;
+
+		chessBoard = [...chessBoard];
+	};
+
+	const handleDragStart = (x: number, y: number) => {
+		const boardData = chessBoard[y][x];
+
+		if (!boardData.piece) return;
+
+		const { piece } = boardData;
+
+		const availableMoves = piece.availableMoves(piece, chessBoard);
+
+		for (const availableMove of availableMoves) {
+			chessBoard[availableMove.y][availableMove.x].cellOptions = { marked: true };
+		}
+
+		isDragging = true;
+	};
+
+	const handleDragEnd = () => {
+		isDragging = false;
+
+		for (const row of chessBoard) {
+			for (const cell of row) {
+				cell.cellOptions = undefined;
+			}
+		}
+	};
 </script>
 
-{#each field as rows, y}
-	<div class="row">
-		{#each rows as cell, x}
-			<div class="field" class:field--other={(y + x) % 2 === 0}>
-				{#if cell}
-					<img alt={`${cell.color} ${cell.piece}`} src={`/svg/${cell.color}_${cell.piece}.svg`} />
-				{/if}
-			</div>
-		{/each}
-	</div>
-{/each}
-
-<style lang="scss">
-	.field {
-		width: 64px;
-		height: 64px;
-		background-color: #779556;
-
-		img {
-			width: 64px;
-			height: 64px;
-
-			position: relative;
-			cursor: grab;
-		}
-
-		&--other {
-			background-color: #ebecd0;
-		}
-	}
-
-	.row {
-		display: flex;
-	}
-</style>
+<Board
+	data={boardData}
+	onMove={handleMove}
+	onDragStart={handleDragStart}
+	onDragEnd={handleDragEnd}
+/>

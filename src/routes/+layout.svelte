@@ -1,8 +1,5 @@
-<slot />
+<script lang="ts">
+	import '$lib/styles/global.scss';
+</script>
 
-<style lang="scss">
-	:global(body) {
-		margin: 0;
-		padding: 0;
-	}
-</style>
+<slot />
