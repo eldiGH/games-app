@@ -140,8 +140,6 @@ const pieceFactory = (data: PieceConstructor): Piece => {
 						const point = new Point(x, y);
 						const piece = getPiece(point);
 
-						console.log(point, piece);
-
 						if (piece) {
 							if (piece.color === oppositeColor) moves.push(point);
 							break;
