@@ -99,8 +99,8 @@
 					<div
 						class="cell"
 						class:cell--other={(y + x) % 2 === 0}
-						class:marked={cell.marked}
-						class:marked--img={cell.marked && cell.imgUrl}
+						class:marked={cell.marked && draggedItem}
+						class:marked--img={cell.marked && cell.imgUrl && draggedItem}
 						data-x={x}
 						data-y={y}
 					>

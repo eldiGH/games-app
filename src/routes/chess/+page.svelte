@@ -2,7 +2,6 @@
 	import type { ChessBoard } from '$lib/types';
 	import { getPiecesFromFenString } from '$lib/helpers';
 	import { STARTER_CHESS_FEN } from '$lib/constants';
-	import type { BoardData, BoardItem } from '$lib/Board/types';
 	import Board from '$lib/Board/Board.svelte';
 
 	let chessBoard: ChessBoard = getPiecesFromFenString(STARTER_CHESS_FEN);
@@ -27,8 +26,6 @@
 		if (!boardData?.piece) return;
 
 		const { piece } = boardData;
-
-		if (piece) console.log(piece.availableMoves(piece, chessBoard));
 
 		if (!piece.canMoveTo(newX, newY, piece, chessBoard)) return;
 
