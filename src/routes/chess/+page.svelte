@@ -1,64 +1,68 @@
 <script lang="ts">
-	import type { ChessBoard } from '$lib/types';
-	import { getPiecesFromFenString } from '$lib/helpers';
 	import { STARTER_CHESS_FEN } from '$lib/constants';
 	import Board from '$lib/Board/Board.svelte';
+	import { getGameFromFENString, ChessGame, Point } from '$lib/classes';
+	import type { BoardData, BoardItem } from '$lib/Board/types';
+	import type { Piece } from '$lib/types';
 
-	let chessBoard: ChessBoard = getPiecesFromFenString(STARTER_CHESS_FEN);
-	let isWhiteTurn = true;
+	const chessGame: ChessGame = getGameFromFENString(STARTER_CHESS_FEN);
 
-	let isDragging: boolean = false;
+	let pieces = chessGame.pieces;
 
-	$: boardData = chessBoard.map((ranks) =>
-		ranks.map((boardItem) => ({
-			imgUrl: boardItem.piece
-				? `/svg/${boardItem.piece.color}_${boardItem.piece.type}.svg`
-				: undefined,
-			draggable: boardItem.piece ? true : false,
-			// (isWhiteTurn && piece.color === PieceColor.WHITE) ||
-			// (!isWhiteTurn && piece.color === PieceColor.BLACK),
-			marked: isDragging && boardItem.cellOptions?.marked
-		}))
-	);
+	let markedFields: Point[] = [];
 
-	const handleMove = (initialX: number, initialY: number, newX: number, newY: number) => {
-		const boardData = chessBoard[initialY][initialX];
-		if (!boardData?.piece) return;
+	const getBoardData = (pieces: Piece[], markedFields: Point[]): BoardData => {
+		const boardData: BoardData = [];
 
-		const { piece } = boardData;
+		let currentPieceIndex = 0;
+		let currentMarkedFieldIndex = 0;
 
-		if (!piece.canMoveTo(newX, newY, piece, chessBoard)) return;
+		for (let y = 0; y < 8; y++) {
+			const rank: BoardItem[] = [];
 
-		chessBoard[newY][newX].piece = piece;
-		chessBoard[initialY][initialX].piece = undefined;
+			for (let x = 0; x < 8; x++) {
+				const cell: BoardItem = {};
 
-		chessBoard = [...chessBoard];
-	};
+				if (pieces.at(currentPieceIndex)?.position.eq(x, y)) {
+					const piece = pieces[currentPieceIndex];
+					currentPieceIndex++;
+					cell.imgUrl = `/svg/${piece.color}_${piece.type}.svg`;
+					cell.draggable = piece.color === chessGame.turn;
+				}
 
-	const handleDragStart = (x: number, y: number) => {
-		const boardData = chessBoard[y][x];
+				if (markedFields.at(currentMarkedFieldIndex)?.eq(x, y)) {
+					currentMarkedFieldIndex++;
+					cell.marked = true;
+				}
 
-		if (!boardData.piece) return;
+				rank.push(cell);
+			}
 
-		const { piece } = boardData;
-
-		const availableMoves = piece.availableMoves(piece, chessBoard);
-
-		for (const availableMove of availableMoves) {
-			chessBoard[availableMove.y][availableMove.x].cellOptions = { marked: true };
+			boardData.push(rank);
 		}
 
-		isDragging = true;
+		return boardData;
+	};
+
+	$: boardData = getBoardData(pieces, markedFields);
+
+	const handleMove = (initialPosition: Point, newPosition: Point) => {
+		if (!chessGame.move(initialPosition, newPosition)) return;
+
+		pieces = [...chessGame.pieces];
+	};
+
+	const handleDragStart = (position: Point) => {
+		const piece = chessGame.getPiece(position);
+		if (!piece) return;
+
+		markedFields = [...piece.possibleMoves];
 	};
 
 	const handleDragEnd = () => {
-		isDragging = false;
+		if (!markedFields.length) return;
 
-		for (const row of chessBoard) {
-			for (const cell of row) {
-				cell.cellOptions = undefined;
-			}
-		}
+		markedFields = [];
 	};
 </script>
 

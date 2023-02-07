@@ -2,12 +2,13 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { BoardData, DraggedItem, Boundary } from './types';
+	import { Point } from '$lib/classes';
 
 	export let data: BoardData;
 	export let reversed: boolean = false;
 
-	export let onMove: (initialX: number, initialY: number, newX: number, newY: number) => void;
-	export let onDragStart: (x: number, y: number) => void;
+	export let onMove: (initialPosition: Point, newPosition: Point) => void;
+	export let onDragStart: (position: Point) => void;
 	export let onDragEnd: () => void;
 
 	let boardRef: HTMLDivElement;
@@ -31,7 +32,7 @@
 		};
 
 		draggedItem = { x, y, ref, offsetLeft: ref.offsetLeft, offsetTop: ref.offsetTop, boundary };
-		onDragStart(x, y);
+		onDragStart(new Point(x, y));
 	};
 
 	const handleItemMove = (mouse: MouseEvent) => {
@@ -70,7 +71,7 @@
 			const x = parseInt(elementBelow.getAttribute('data-x') ?? '');
 			const y = parseInt(elementBelow.getAttribute('data-y') ?? '');
 
-			onMove(draggedItem.x, draggedItem.y, x, y);
+			onMove(new Point(draggedItem.x, draggedItem.y), new Point(x, y));
 		}
 
 		draggedItem.ref.style.left = '';
@@ -151,6 +152,7 @@
 			height: 64px;
 
 			position: relative;
+			outline-color: transparent;
 		}
 
 		.draggable {
@@ -158,7 +160,7 @@
 
 			outline: transparent solid 3px;
 			outline-offset: -3px;
-			transition: outline-color 0.15s ease-in-out;
+			transition: outline-color 0.2s ease-in-out;
 
 			&:hover {
 				outline-color: white;
@@ -187,9 +189,10 @@
 
 			transform: translate(50%, 50%);
 
-			background: black;
-			opacity: 0.2;
+			opacity: 0.4;
 			border-radius: 50%;
+
+			animation: 0.2s normal 1 forwards background;
 		}
 	}
 
@@ -199,11 +202,13 @@
 			height: 64px;
 			transform: none;
 
-			outline: black solid 5px;
+			outline: transparent solid 5px;
 			outline-offset: -5px;
 			background-color: transparent;
 
 			border-radius: 0;
+
+			animation: 0.2s normal 1 forwards outline;
 		}
 	}
 
@@ -218,6 +223,24 @@
 
 		.row {
 			flex-direction: row-reverse;
+		}
+	}
+
+	@keyframes background {
+		from {
+			background-color: transparent;
+		}
+		to {
+			background-color: black;
+		}
+	}
+
+	@keyframes outline {
+		from {
+			outline-color: transparent;
+		}
+		to {
+			outline-color: black;
 		}
 	}
 </style>

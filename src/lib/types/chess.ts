@@ -14,23 +14,16 @@ export enum PieceColor {
 	BLACK = 'b'
 }
 
-export interface PieceConstructor {
+export interface Piece {
 	type: PieceType;
 	color: PieceColor;
+	position: Point;
+	possibleMoves: Point[];
 }
 
-export interface Piece extends PieceConstructor {
-	canMoveTo: (x: number, y: number, piece: Piece, chessBoard: ChessBoard) => boolean;
-	availableMoves: (piece: Piece, chessBoard: ChessBoard) => Point[];
-}
+export type ChessSquare = Piece | null;
 
-export interface CellOptions {
-	marked?: boolean;
+export interface Castle {
+	queenSide: boolean;
+	kingSide: boolean;
 }
-
-export interface ChessBoardItem {
-	piece?: Piece;
-	cellOptions?: CellOptions;
-}
-
-export type ChessBoard = ChessBoardItem[][];
