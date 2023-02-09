@@ -26,7 +26,7 @@
 				if (pieces.at(currentPieceIndex)?.position.eq(x, y)) {
 					const piece = pieces[currentPieceIndex];
 					currentPieceIndex++;
-					cell.imgUrl = `/svg/${piece.color}_${piece.type}.svg`;
+					cell.imgUrl = `/svg/chess/${piece.color}_${piece.type}.svg`;
 					cell.draggable = piece.color === chessGame.turn;
 				}
 

@@ -27,6 +27,28 @@ export class Point {
 		return new Point(this.x + x, this.y);
 	}
 
+	gtEq(x: number, y: number): boolean;
+	gtEq(point: Point): boolean;
+	gtEq(xOrPoint: number | Point, y?: number): boolean {
+		if (typeof xOrPoint === 'number' && typeof y === 'number')
+			return this.x >= xOrPoint && this.y >= y;
+		if (typeof xOrPoint === 'object') return this.x >= xOrPoint.x && this.y >= xOrPoint.y;
+		return false;
+	}
+
+	ltEq(x: number, y: number): boolean;
+	ltEq(point: Point): boolean;
+	ltEq(xOrPoint: number | Point, y?: number): boolean {
+		if (typeof xOrPoint === 'number' && typeof y === 'number')
+			return this.x <= xOrPoint && this.y <= y;
+		if (typeof xOrPoint === 'object') return this.x <= xOrPoint.x && this.y <= xOrPoint.y;
+		return false;
+	}
+
+	within(xMin: number, yMin: number, xMax: number, yMax: number): boolean {
+		return this.gtEq(xMin, yMin) && this.ltEq(xMax, yMax);
+	}
+
 	eq({ x, y }: Point): boolean;
 	eq(x: number, y: number): boolean;
 	eq(pointOrX: Point | number, y?: number): boolean {
