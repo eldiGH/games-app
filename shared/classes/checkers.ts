@@ -1,4 +1,4 @@
-import { StoneColor, type Stone, type StoneMove } from '$lib/types';
+import { StoneColor, type Stone, type StoneMove } from '@shared/types';
 import { Point } from './utils';
 
 export const getInitialCheckersGame = (): CheckersGame => {

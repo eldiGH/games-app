@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { STARTER_CHESS_FEN } from '$lib/constants';
 	import Board from '$lib/Board/Board.svelte';
-	import { getGameFromFENString, ChessGame, Point } from '$lib/classes';
+	import { getGameFromFENString, ChessGame, Point } from '@shared/classes';
 	import type { BoardData, BoardItem } from '$lib/Board/types';
-	import type { Piece } from '$lib/types';
+	import type { Piece } from '@shared/types';
 
 	const chessGame: ChessGame = getGameFromFENString(STARTER_CHESS_FEN);
 

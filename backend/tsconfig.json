@@ -1,0 +1,12 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		// "baseUrl": ".",
+		"noEmit": false,
+		"outDir": "../dist/backend"
+		// "paths": {
+		// 	"@shared/*": ["../shared/*"]
+		// }
+	},
+	"references": [{ "path": "../shared" }]
+}

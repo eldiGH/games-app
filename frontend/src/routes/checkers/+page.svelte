@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Board from '$lib/Board/Board.svelte';
 	import type { BoardData, BoardItem } from '$lib/Board/types';
-	import { getInitialCheckersGame, Point } from '$lib/classes';
-	import type { Stone } from '$lib/types';
+	import { getInitialCheckersGame, Point } from '@shared/classes';
+	import type { Stone } from '@shared/types';
 
 	const checkersGame = getInitialCheckersGame();
 	let stones = checkersGame.stones;

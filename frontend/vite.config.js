@@ -1,8 +1,10 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 
+const plugin = await sveltekit();
+
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [sveltekit()],
+	plugins: [plugin],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	}

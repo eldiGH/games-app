@@ -1,4 +1,4 @@
-import { PieceColor, type Castle, PieceType, type Piece } from '$lib/types';
+import { PieceColor, type Castle, PieceType, type Piece } from '@shared/types';
 import { Point } from './utils';
 
 export const chessSquareToPoint = (square: string): Point => {

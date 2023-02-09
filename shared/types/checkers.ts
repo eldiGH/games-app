@@ -1,4 +1,4 @@
-import type { Point } from '$lib/classes';
+import type { Point } from '@shared/classes';
 
 export enum StoneColor {
 	WHITE = 'w',

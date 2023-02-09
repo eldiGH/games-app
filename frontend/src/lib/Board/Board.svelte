@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { BoardData, DraggedItem, Boundary } from './types';
-	import { Point } from '$lib/classes';
+	import { Point } from '@shared/classes';
 
 	export let data: BoardData;
 	export let reversed: boolean = false;
