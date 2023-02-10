@@ -11,16 +11,16 @@ datasource db {
 }
 
 model Player {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique @db.VarChar(32)
-  password     String         @db.VarChar(60)
-  nickname     String         @db.VarChar(20)
-  registeredAt DateTime
-  rankings     Ranking[]
-  friendships  Friendship[]   @relation(name: "Player")
-  friendFor    Friendship[]   @relation(name: "Friend")
-  won          MatchHistory[] @relation(name: "Winner")
-  lost         MatchHistory[] @relation(name: "Loser")
+  id            Int            @id @default(autoincrement())
+  email         String         @unique @db.VarChar(32)
+  password      String         @db.VarChar(60)
+  nickname      String         @unique @db.VarChar(20)
+  createdAt     DateTime       @default(now())
+  rankings      Ranking[]
+  friendships   Friendship[]   @relation(name: "Player")
+  friendFor     Friendship[]   @relation(name: "Friend")
+  won           MatchHistory[] @relation(name: "Winner")
+  lost          MatchHistory[] @relation(name: "Loser")
 
   @@map("players")
 }

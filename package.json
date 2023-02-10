@@ -9,7 +9,7 @@
 		"fe:dev": "node scripts/vite.js dev",
 		"fe:build": "node scripts/vite.js build",
 		"fe:preview": "node scripts/vite.js preview",
-		"be:dev": "tsc-watch2 --watch backend/src --buildStep 'tsc -b backend' --start 'node -r ./tsconfig-paths.js -r source-map-support/register dist/backend'",
+		"be:dev": "tsc-watch2 --watch backend/src --watch shared --watch .env --buildStep 'tsc -b backend' --start 'node -r ./tsconfig-paths.js -r source-map-support/register dist/backend'",
 		"be:build": "tsc -b --clean backend shared && tsc -b backend/tsconfig-prod.json",
 		"be:start": "node -r ./tsconfig-paths.js dist/backend",
 		"test": "playwright test",
@@ -25,6 +25,9 @@
 		"@sveltejs/adapter-auto": "^1.0.0",
 		"@sveltejs/adapter-static": "^1.0.5",
 		"@sveltejs/kit": "^1.0.0",
+		"@types/bcryptjs": "^2.4.2",
+		"@types/express": "^4.17.17",
+		"@types/jsonwebtoken": "^9.0.1",
 		"@types/node": "^18.13.0",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
@@ -44,6 +47,10 @@
 	},
 	"dependencies": {
 		"@prisma/client": "^4.10.1",
+		"bcryptjs": "^2.4.3",
+		"dotenv": "^16.0.3",
+		"express": "^4.18.2",
+		"jsonwebtoken": "^9.0.0",
 		"prisma": "^4.10.1",
 		"tsconfig-paths": "^4.1.2"
 	}
