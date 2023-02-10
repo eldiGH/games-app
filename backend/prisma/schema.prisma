@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique @db.VarChar(32)
+  password     String         @db.VarChar(60)
+  nickname     String         @db.VarChar(20)
+  registeredAt DateTime
+  rankings     Ranking[]
+  friendships  Friendship[]   @relation(name: "Player")
+  friendFor    Friendship[]   @relation(name: "Friend")
+  won          MatchHistory[] @relation(name: "Winner")
+  lost         MatchHistory[] @relation(name: "Loser")
+
+  @@map("players")
+}
+
+enum Game {
+  SNAKE
+  CHESS
+  CHECKERS
+}
+
+model Ranking {
+  id       Int    @id @default(autoincrement())
+  value    Int
+  game     Game
+  playerId Int
+  player   Player @relation(fields: [playerId], references: [id])
+
+  @@map("rankings")
+}
+
+model MatchHistory {
+  id                 Int      @id @default(autoincrement())
+  winnerId           Int
+  winner             Player   @relation(name: "Winner", fields: [winnerId], references: [id])
+  winnerRatingBefore Int
+  loserId            Int
+  loser              Player   @relation(name: "Loser", fields: [loserId], references: [id])
+  loserRatingBefore  Int
+  transferedPoints   Int
+  game               Game
+  date               DateTime @default(now())
+
+  @@map("match_histories")
+}
+
+model Friendship {
+  id       Int    @id @default(autoincrement())
+  playerId Int
+  player   Player @relation(name: "Player", fields: [playerId], references: [id])
+  friendId Int
+  friend   Player @relation(name: "Friend", fields: [friendId], references: [id])
+
+  @@map("friendships")
+}

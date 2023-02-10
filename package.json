@@ -2,6 +2,9 @@
 	"name": "games-app",
 	"version": "0.0.1",
 	"private": true,
+	"prisma": {
+		"schema": "backend/prisma/schema.prisma"
+	},
 	"scripts": {
 		"fe:dev": "node scripts/vite.js dev",
 		"fe:build": "node scripts/vite.js build",
@@ -40,6 +43,8 @@
 		"vitest": "^0.25.3"
 	},
 	"dependencies": {
+		"@prisma/client": "^4.10.1",
+		"prisma": "^4.10.1",
 		"tsconfig-paths": "^4.1.2"
 	}
 }
