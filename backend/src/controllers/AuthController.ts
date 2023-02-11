@@ -1,26 +1,35 @@
+import { loginRequestCompiledSchema, registerRequestCompiledSchema } from '@shared/schemas';
+import { controller, endpointFactory } from '../helpers/controllers';
 import { AuthService } from '../services/AuthService';
-import type { Controller } from '../types/Controller';
-import type { Endpoint } from '../types/Endpoint';
 import { HttpStatus } from '../types/enums/HttpStatus';
 
-const register: Endpoint = {
-	path: '/register',
-	method: 'post',
-	callback: async (req, res) => {
+export const AuthController = controller('/auth');
+const endpoint = endpointFactory(AuthController);
+
+endpoint(
+	{
+		name: 'register',
+		path: '/register',
+		method: 'post',
+		validationSchema: registerRequestCompiledSchema
+	},
+	async (req, res) => {
 		await AuthService.register(req.body);
 
-		res.sendStatus(HttpStatus.CREATED);
+		res.status(HttpStatus.CREATED).send();
 	}
-};
+);
 
-const login: Endpoint = {
-	path: '/login',
-	method: 'post',
-	callback: async (req, res) => {
+endpoint(
+	{
+		name: 'login',
+		path: '/login',
+		method: 'post',
+		validationSchema: loginRequestCompiledSchema
+	},
+	async (req, res) => {
 		const token = await AuthService.login(req.body);
 
 		res.send({ token });
 	}
-};
-
-export const AuthController: Controller = { path: '/auth', endpoints: [register, login] };
+);

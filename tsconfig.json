@@ -10,7 +10,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"@shared/types": ["shared/types/index"],
-			"@shared/classes": ["shared/classes/index"]
+			"@shared/classes": ["shared/classes/index"],
+			"@shared/schemas": ["shared/schemas/index"]
 		},
 		"importsNotUsedAsValues": "error",
 		"isolatedModules": true,

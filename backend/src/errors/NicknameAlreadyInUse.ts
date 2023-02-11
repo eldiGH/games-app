@@ -5,5 +5,5 @@ import { HttpStatus } from '../types/enums/HttpStatus';
 export const NicknameAlreadyInUse = (nickname: string): ApiError => ({
 	errorCode: ApiErrorCode.NICKNAME_ALREADY_IN_USE,
 	httpStatus: HttpStatus.BAD_REQUEST,
-	message: `Nickname "${nickname}" is already in use`
+	message: `Nickname '${nickname}' is already in use`
 });
