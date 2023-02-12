@@ -1,5 +1,5 @@
-import { spawn } from 'child_process';
-import process from 'process';
+const { spawn } = require('child_process');
+const process = require('process');
 
 console.clear();
 

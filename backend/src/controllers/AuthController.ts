@@ -1,7 +1,7 @@
 import { loginRequestCompiledSchema, registerRequestCompiledSchema } from '@shared/schemas';
-import { controller, endpointFactory } from '../helpers/controllers';
-import { AuthService } from '../services/AuthService';
-import { HttpStatus } from '../types/enums/HttpStatus';
+import { controller, endpointFactory } from '../helpers';
+import { AuthService } from '../services';
+import { HttpStatus } from '../types';
 
 export const AuthController = controller('/auth');
 const endpoint = endpointFactory(AuthController);

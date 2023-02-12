@@ -1,11 +1,15 @@
 import type { Static, TSchema } from '@sinclair/typebox';
-import type { Controller } from '../types/Controller';
+import { WebSocketServer } from 'ws';
 import type {
+	Controller,
+	EndpointConfig,
 	AuthEndpointConfig,
-	Endpoint,
 	EndpointCallback,
-	EndpointConfig
-} from '../types/Endpoint';
+	Endpoint,
+	WsController,
+	WsMessage,
+	WsMessageHandler
+} from '../types';
 
 export const controller = (path: string): Controller => ({ path, endpoints: [] });
 
@@ -21,3 +25,25 @@ export const endpointFactory = (controller: Controller) => {
 		return endpoint;
 	};
 };
+
+export const wsController = (path: string): WsController => {
+	const wss = new WebSocketServer({ noServer: true });
+	const events: WsMessage[] = [];
+
+	wss.on('connection', (socket) => {
+		socket.emit('test', { sadad: 'sdad' });
+
+		for (const { name, handler } of events) {
+			socket.on('message', (data, isBinary) => {
+				console.log(data);
+			});
+		}
+	});
+
+	return { wss, path, messages: events };
+};
+
+export const messageFactory =
+	(wsController: WsController) => (name: string, handler: WsMessageHandler) => {
+		wsController.messages.push({ name, handler });
+	};

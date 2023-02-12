@@ -48,8 +48,4 @@ const login = async (data: LoginRequest): Promise<string> => {
 	return token;
 };
 
-const findPlayerById = async (id: number) => {
-	return await db.player.findFirst({ where: { id } });
-};
-
-export const AuthService = { register, login, findPlayerById };
+export const AuthService = { register, login };

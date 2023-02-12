@@ -1,6 +1,5 @@
 import { ApiErrorCode } from '@shared/types';
-import type { ApiError } from '../types/ApiError';
-import { HttpStatus } from '../types/enums/HttpStatus';
+import { type ApiError, HttpStatus } from '../types';
 
 export const EmailAlreadyInUse = (email: string): ApiError => ({
 	errorCode: ApiErrorCode.EMAIL_ALREADY_IN_USE,

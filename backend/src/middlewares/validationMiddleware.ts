@@ -1,6 +1,6 @@
 import type { TypeCheck, ValueError } from '@sinclair/typebox/compiler';
-import { ValidationError } from '../errors/ValidationError';
-import type { Middleware } from '../types/Middleware';
+import { ValidationError } from '../errors/index.js';
+import type { Middleware } from '../types/index.js';
 
 export const validationMiddlewareFactory =
 	(compiledSchema: TypeCheck<never>): Middleware =>

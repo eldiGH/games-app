@@ -1,14 +1,9 @@
 import { Router, type NextFunction } from 'express';
-import { AuthController } from './controllers';
-import { authMiddleware } from './middlewares/authMiddleware';
-import { validationMiddlewareFactory } from './middlewares/validationMiddleware';
-import type { Controller } from './types/Controller';
-import type { EndpointCallback } from './types/Endpoint';
-import type { Middleware } from './types/Middleware';
-import type { Req } from './types/Req';
-import type { Res } from './types/Res';
+import { AuthController, PlayersController } from './controllers/index';
+import { authMiddleware, validationMiddlewareFactory } from './middlewares/index';
+import type { Controller, EndpointCallback, Middleware, Req, Res } from './types/index';
 
-const controllers: Controller[] = [AuthController];
+const controllers: Controller[] = [AuthController, PlayersController];
 
 export const router = Router();
 

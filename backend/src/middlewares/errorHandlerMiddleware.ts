@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
-import { InternalServerError } from '../errors/InternalServerError';
-import { isApiError, type ApiError } from '../types/ApiError';
+import { InternalServerError } from '../errors/index.js';
+import { isApiError, type ApiError } from '../types/index.js';
 
 export const errorHandlerMiddleware = (
 	err: unknown,

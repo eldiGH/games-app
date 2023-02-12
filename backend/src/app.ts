@@ -1,7 +1,5 @@
 import express from 'express';
-import './controllers';
-import { errorHandlerMiddleware } from './middlewares/errorHandlerMiddleware';
-import { notFoundMiddleware } from './middlewares/notFoundMiddleware';
+import { errorHandlerMiddleware, notFoundMiddleware } from './middlewares/index';
 import { router } from './router';
 
 export const app = express();
