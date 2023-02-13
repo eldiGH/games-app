@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
-import { compare, hash } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
+import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { db } from '../db';
 import {
 	EmailAlreadyInUse,
@@ -30,7 +30,7 @@ const validateNicknameAndEmail = async (data: ValidateNicknameAndEmail) => {
 const register = async (playerData: Prisma.PlayerCreateInput) => {
 	await validateNicknameAndEmail(playerData);
 
-	const password = await hash(playerData.password, 10);
+	const password = await bcryptjs.hash(playerData.password, 10);
 	await db.player.create({ data: { ...playerData, password } });
 };
 
@@ -38,12 +38,12 @@ const login = async (data: LoginRequest): Promise<string> => {
 	const player = await db.player.findFirst({ where: { email: data.email } });
 	if (!player) throw EmailOrPasswordNotValid();
 
-	const isPasswordValid = await compare(data.password, player.password);
+	const isPasswordValid = await bcryptjs.compare(data.password, player.password);
 	if (!isPasswordValid) throw EmailOrPasswordNotValid();
 
 	const payload: JwtPayload = { id: player.id };
 
-	const token = sign(payload, jwtSecret, { expiresIn: '1h' });
+	const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
 
 	return token;
 };

@@ -5,19 +5,28 @@
 	"prisma": {
 		"schema": "backend/prisma/schema.prisma"
 	},
+	"type": "module",
+	"extensionless": {
+		"lookFor": [
+			"js",
+			"json"
+		],
+		"resolveDirs": true
+	},
 	"scripts": {
 		"fe:dev": "node scripts/vite.js dev",
 		"fe:build": "node scripts/vite.js build",
 		"fe:preview": "node scripts/vite.js preview",
-		"be:dev": "tsc-watch2 --watch backend/src --watch shared --watch .env --buildStep 'tsc -b backend' --start 'node -r ./tsconfig-paths.js -r source-map-support/register dist/backend'",
-		"be:build": "tsc -b --clean backend shared && tsc -b backend/tsconfig-prod.json",
-		"be:start": "node -r ./tsconfig-paths.js dist/backend",
+		"be:dev": "tsc-watch2 --watch backend/src --watch shared --watch .env --buildStep 'tsc -b backend' --start 'node --experimental-loader=extensionless -r source-map-support/register dist/backend'",
+		"be:build": "tsc -b --clean backend backend/tsconfig-prod.json shared shared/tsconfig-prod.json && tsc -b backend/tsconfig-prod.json",
+		"be:start": "node --experimental-loader=extensionless dist/backend",
 		"test": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
-		"format": "prettier --plugin-search-dir . --write ."
+		"format": "prettier --plugin-search-dir . --write .",
+		"prepare": "ts-patch install -s"
 	},
 	"devDependencies": {
 		"@eldigh/tsc-watch2": "^1.0.12",
@@ -41,8 +50,10 @@
 		"source-map-support": "^0.5.21",
 		"svelte": "^3.54.0",
 		"svelte-check": "^2.9.2",
+		"ts-patch": "^2.1.0",
 		"tslib": "^2.4.1",
 		"typescript": "^4.9.3",
+		"typescript-transform-paths": "^3.4.6",
 		"vite": "^4.0.0",
 		"vitest": "^0.25.3"
 	},
@@ -53,6 +64,7 @@
 		"bcryptjs": "^2.4.3",
 		"dotenv": "^16.0.3",
 		"express": "^4.18.2",
+		"extensionless": "^1.1.0",
 		"jsonwebtoken": "^9.0.0",
 		"prisma": "^4.10.1",
 		"tsconfig-paths": "^4.1.2",

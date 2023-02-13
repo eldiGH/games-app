@@ -9,18 +9,19 @@
 		"strict": true,
 		"baseUrl": ".",
 		"paths": {
-			"@shared/types": ["shared/types/index"],
-			"@shared/classes": ["shared/classes/index"],
-			"@shared/schemas": ["shared/schemas/index"]
+			"@shared/types": ["shared/types/index.ts"],
+			"@shared/classes": ["shared/classes/index.ts"],
+			"@shared/schemas": ["shared/schemas/index.ts"]
 		},
 		"importsNotUsedAsValues": "error",
 		"isolatedModules": true,
 		"preserveValueImports": true,
 		"lib": ["esnext"],
 		"moduleResolution": "node",
-		"module": "NodeNext",
+		"module": "ESNext",
 		"target": "ESNext",
-		"noEmit": true
+		"noEmit": true,
+		"plugins": [{ "transform": "typescript-transform-paths" }]
 	},
 	"exclude": ["node_modules/**", "frontend/**"]
 }

@@ -3,7 +3,6 @@
 	import type { BoardData, BoardItem } from '$lib/Board/types';
 	import { getInitialCheckersGame, Point } from '@shared/classes';
 	import type { Stone } from '@shared/types';
-	import ws from 'ws';
 
 	const checkersGame = getInitialCheckersGame();
 	let stones = checkersGame.stones;
@@ -66,8 +65,6 @@
 	const handleDragEnd = () => {
 		markedFields = [];
 	};
-
-	const w = new ws('ws://localhost:3000/checkers');
 </script>
 
 <Board

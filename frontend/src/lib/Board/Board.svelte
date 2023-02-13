@@ -5,7 +5,7 @@
 	import { Point } from '@shared/classes';
 
 	export let data: BoardData;
-	export let reversed: boolean = false;
+	export let reversed = false;
 
 	export let onMove: (initialPosition: Point, newPosition: Point) => void;
 	export let onDragStart: (position: Point) => void;
