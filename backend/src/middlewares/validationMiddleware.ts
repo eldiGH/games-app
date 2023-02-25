@@ -1,17 +1,14 @@
-import type { TypeCheck, ValueError } from '@sinclair/typebox/compiler';
+import type { Schema, ValidationError as YupValidationError } from 'yup';
 import { ValidationError } from '../errors/index.js';
 import type { Middleware } from '../types/index.js';
 
 export const validationMiddlewareFactory =
-	(compiledSchema: TypeCheck<never>): Middleware =>
-	(req, _res, next) => {
-		const errors: ValueError[] = [];
-
-		for (const error of compiledSchema.Errors(req.body)) {
-			errors.push(error);
+	(schema: Schema): Middleware =>
+	async (req, _res, next) => {
+		try {
+			await schema.validate(req.body, { abortEarly: false });
+			next();
+		} catch (e) {
+			next(ValidationError(e as YupValidationError));
 		}
-
-		if (!errors.length) return next();
-
-		next(ValidationError(errors));
 	};

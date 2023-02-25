@@ -1,14 +1,11 @@
-import { type Static, Type } from '@sinclair/typebox';
-import { TypeCompiler } from '@sinclair/typebox/compiler';
+import { object, string, type InferType } from 'yup';
 
-const loginRequestSchema = Type.Object({
-	email: Type.String({ format: 'email' }),
-	password: Type.String()
+export const loginRequestSchema = object({
+	email: string().required().email(),
+	password: string().required()
 });
 
-export type LoginRequest = Static<typeof loginRequestSchema>;
-
-export const loginRequestCompiledSchema = TypeCompiler.Compile(loginRequestSchema);
+export type LoginRequest = InferType<typeof loginRequestSchema>;
 
 export interface LoginResponse {
 	token: string;

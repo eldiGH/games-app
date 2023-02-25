@@ -1,5 +1,4 @@
-import { ApiErrorCode } from '@shared/types';
-import { HttpStatus, type ApiError } from '../types';
+import { ApiErrorCode, HttpStatus, type ApiError } from '@shared/types';
 
 export const NicknameAlreadyInUse = (nickname: string): ApiError => ({
 	errorCode: ApiErrorCode.NICKNAME_ALREADY_IN_USE,

@@ -1,8 +1,9 @@
 <script lang="ts">
-	import Board from '$lib/Board/Board.svelte';
-	import type { BoardData, BoardItem } from '$lib/Board/types';
+	import Board from '$lib/components/Board/Board.svelte';
+	import type { BoardData, BoardItem } from '$lib/components/Board/types';
 	import { getInitialCheckersGame, Point } from '@shared/classes';
 	import type { Stone } from '@shared/types';
+	import { onMount } from 'svelte';
 
 	const checkersGame = getInitialCheckersGame();
 	let stones = checkersGame.stones;
@@ -65,6 +66,14 @@
 	const handleDragEnd = () => {
 		markedFields = [];
 	};
+
+	onMount(() => {
+		const socket = new WebSocket('ws://localhost:3000/checkers');
+
+		socket.onmessage = (event) => {
+			console.log(event);
+		};
+	});
 </script>
 
 <Board

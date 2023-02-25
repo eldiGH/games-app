@@ -1,24 +1,23 @@
 import type { Player } from '@prisma/client';
-import type { TSchema } from '@sinclair/typebox';
-import type { TypeCheck } from '@sinclair/typebox/compiler';
 import type { HttpMethods } from './HttpMethod';
 import type { Req } from './Req';
 import type { Res } from './Res';
+import type { Schema } from 'yup';
 
 export interface Controller {
 	path: string;
 	endpoints: Endpoint[];
 }
 
-export interface EndpointConfig<Schema extends TSchema = never> {
+export interface EndpointConfig<MySchema extends Schema = never> {
 	name: string;
 	path: string;
 	method: HttpMethods;
-	validationSchema?: TypeCheck<Schema>;
+	validationSchema?: MySchema;
 }
 
-export interface AuthEndpointConfig<Schema extends TSchema = never, Auth extends boolean = boolean>
-	extends EndpointConfig<Schema> {
+export interface AuthEndpointConfig<MySchema extends Schema = never, Auth extends boolean = boolean>
+	extends EndpointConfig<MySchema> {
 	auth: Auth;
 }
 

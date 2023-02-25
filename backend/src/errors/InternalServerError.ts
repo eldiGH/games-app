@@ -1,5 +1,4 @@
-import { ApiErrorCode } from '@shared/types';
-import { type ApiError, HttpStatus } from '../types';
+import { ApiErrorCode, HttpStatus, type ApiError } from '@shared/types';
 
 export const InternalServerError = (): ApiError => ({
 	errorCode: ApiErrorCode.INTERNAL_SERVER_ERROR,

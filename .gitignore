@@ -12,3 +12,4 @@ vite.config.ts.timestamp-*
 dist
 *lock.yaml
 frontend/build
+frontend/src/config.json

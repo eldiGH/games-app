@@ -1,15 +1,14 @@
-import type { RawData } from 'ws';
 import type WebSocket from 'ws';
 
 export interface WsController {
 	wss: WebSocket.Server;
 	path: string;
-	messages: WsMessage[];
+	hooks: WsHook[];
 }
 
-export interface WsMessage {
-	name: string;
-	handler: WsMessageHandler;
+export interface WsHook {
+	type: string;
+	handler: WsHandler;
 }
 
-export type WsMessageHandler = (data: RawData, isBinary: boolean) => void;
+export type WsHandler<T = Record<string, unknown>> = (data: T) => void;

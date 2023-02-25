@@ -1,7 +1,7 @@
-import { loginRequestCompiledSchema, registerRequestCompiledSchema } from '@shared/schemas';
+import { loginRequestSchema, registerRequestSchema } from '@shared/schemas';
+import { HttpStatus } from '@shared/types';
 import { controller, endpointFactory } from '../helpers';
 import { AuthService } from '../services';
-import { HttpStatus } from '../types';
 
 export const AuthController = controller('/auth');
 const endpoint = endpointFactory(AuthController);
@@ -11,7 +11,7 @@ endpoint(
 		name: 'register',
 		path: '/register',
 		method: 'post',
-		validationSchema: registerRequestCompiledSchema
+		validationSchema: registerRequestSchema
 	},
 	async (req, res) => {
 		await AuthService.register(req.body);
@@ -25,7 +25,7 @@ endpoint(
 		name: 'login',
 		path: '/login',
 		method: 'post',
-		validationSchema: loginRequestCompiledSchema
+		validationSchema: loginRequestSchema
 	},
 	async (req, res) => {
 		const token = await AuthService.login(req.body);
