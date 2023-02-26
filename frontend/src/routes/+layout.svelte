@@ -6,7 +6,21 @@
 	import '@fontsource/roboto/500.css';
 	import '@fontsource/roboto/700.css';
 	import '../../../node_modules/svelte-material-ui/bare.css';
-	import Container from '$lib/components/Container/Container.svelte';
+	import Notification from '$lib/components/Notification/Notification.svelte';
 </script>
 
-<slot />
+<div>
+	<Notification />
+	<slot />
+</div>
+
+<style lang="scss">
+	div {
+		height: 100vh;
+		width: 100vw;
+		overflow: hidden;
+
+		display: flex;
+		flex-direction: column;
+	}
+</style>

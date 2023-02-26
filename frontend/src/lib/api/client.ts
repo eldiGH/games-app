@@ -1,16 +1,14 @@
 import type { ApiClientResponse, HttpMethod } from '$lib/types';
+import { HttpStatus } from '@shared/types';
+import { get } from 'svelte/store';
 import urlJoin from 'url-join';
 import config from '../../config.json';
+import { pushNotification } from '$lib/components/Notification/Notification.svelte';
 
-let authToken: string | null;
+const getAuthStore = async () => {
+	const { authStore, notificationStore } = await import('$lib/stores');
 
-const subscribeToken = async () => {
-	const { authStore } = await import('$lib/stores');
-
-	authStore.subscribe(({ token }) => {
-		if (token) authToken = `Bearer ${token}`;
-		else authToken = null;
-	});
+	return { authStore, notificationStore };
 };
 
 export const getClient = (controller: string) => {
@@ -21,20 +19,36 @@ export const getClient = (controller: string) => {
 	): Promise<ApiClientResponse<T>> => {
 		const finalBody = reqBody ? JSON.stringify(reqBody) : undefined;
 
-		const res = await fetch(urlJoin(config.API_URL, controller, url), {
-			method,
-			body: finalBody,
-			headers: {
-				'Content-Type': 'application/json',
-				...(authToken ? { Authorization: authToken } : undefined)
+		const headers: Record<string, string> = {
+			'Content-Type': 'application/json'
+		};
+
+		const { authStore, notificationStore } = await getAuthStore();
+		const { token } = get(authStore);
+
+		if (token) headers.Authorization = `Bearer ${token}`;
+
+		try {
+			const res = await fetch(urlJoin(config.API_URL, controller, url), {
+				method,
+				body: finalBody,
+				headers
+			});
+
+			const data = await res.json();
+
+			if (res.status === HttpStatus.UNAUTHORIZED) {
+				authStore.logout();
 			}
-		});
+			if (res.status >= 400)
+				return { data: undefined, error: { status: res.status, payload: data } };
 
-		const data = await res.json();
+			return { data, error: undefined };
+		} catch (e) {
+			notificationStore.push({});
 
-		if (res.status >= 400) return { data: undefined, error: { status: res.status, payload: data } };
-
-		return { data, error: undefined };
+			throw e;
+		}
 	};
 
 	return {
@@ -43,5 +57,3 @@ export const getClient = (controller: string) => {
 		delete: <T>(url: string) => myFetch<T>(url, 'DELETE')
 	};
 };
-
-subscribeToken();

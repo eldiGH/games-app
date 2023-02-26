@@ -1,14 +1,17 @@
-import type { Schema, ValidationError as YupValidationError } from 'yup';
-import { ValidationError } from '../errors/index.js';
+import { ValidationError as YupValidationError, type Schema } from 'yup';
+import { InternalServerError, ValidationError } from '../errors/index.js';
 import type { Middleware } from '../types/index.js';
 
 export const validationMiddlewareFactory =
 	(schema: Schema): Middleware =>
 	async (req, _res, next) => {
 		try {
-			await schema.validate(req.body, { abortEarly: false });
+			const body = await schema.validate(req.body, { abortEarly: false });
+			req.body = body;
 			next();
 		} catch (e) {
-			next(ValidationError(e as YupValidationError));
+			if (e instanceof YupValidationError) return next(ValidationError(e as YupValidationError));
+			next(InternalServerError());
+			console.error(e);
 		}
 	};

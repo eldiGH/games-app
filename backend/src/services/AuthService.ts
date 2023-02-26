@@ -9,7 +9,7 @@ import {
 	NicknameAlreadyInUse
 } from '../errors';
 import type { ValidateNicknameAndEmail } from '../types/ValidateNicknameAndEmail';
-import type { LoginRequest } from '@shared/schemas';
+import type { LoginRequest, LoginResponse } from '@shared/schemas';
 import type { JwtPayload } from '@shared/types';
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -34,7 +34,7 @@ const register = async (playerData: Prisma.PlayerCreateInput) => {
 	await db.player.create({ data: { ...playerData, password } });
 };
 
-const login = async (data: LoginRequest): Promise<string> => {
+const login = async (data: LoginRequest): Promise<LoginResponse> => {
 	const player = await db.player.findFirst({ where: { email: data.email } });
 	if (!player) throw EmailOrPasswordNotValid();
 
@@ -45,7 +45,7 @@ const login = async (data: LoginRequest): Promise<string> => {
 
 	const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
 
-	return token;
+	return { token, nickname: player.nickname };
 };
 
 export const AuthService = { register, login };

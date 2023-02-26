@@ -2,6 +2,7 @@ import { loginRequest } from '$lib/api';
 import type { ApiClientError } from '$lib/types';
 import type { LoginRequest } from '@shared/schemas';
 import { derived, writable } from 'svelte/store';
+import { playerStore } from './player';
 
 interface AuthStore {
 	token: string | null;
@@ -14,8 +15,13 @@ const createAuthStore = () => {
 
 	const { subscribe, set } = writable<AuthStore>({ token });
 
+	if (token) {
+		playerStore.getPlayerData();
+	}
+
 	const logout = () => {
 		set({ token: null });
+		playerStore.set(undefined);
 		localStorage.removeItem(LOCAL_STORAGE_KEY);
 	};
 
@@ -24,9 +30,11 @@ const createAuthStore = () => {
 
 		if (error) return error;
 
-		localStorage.setItem(LOCAL_STORAGE_KEY, data.token);
+		const { token, nickname } = data;
+		localStorage.setItem(LOCAL_STORAGE_KEY, token);
 
 		set({ token });
+		playerStore.set({ nickname });
 	};
 
 	return { subscribe, logout, login };

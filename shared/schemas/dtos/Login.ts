@@ -9,4 +9,5 @@ export type LoginRequest = InferType<typeof loginRequestSchema>;
 
 export interface LoginResponse {
 	token: string;
+	nickname: string;
 }

@@ -4,26 +4,25 @@
 	import Card from '@smui/card';
 	import Button from '@smui/button';
 	import { authStore } from '$lib/stores/auth';
-	import { writable } from 'svelte/store';
+	import { createForm } from 'svelte-forms-lib';
+	import { loginRequestSchema } from '@shared/schemas';
+	import { notificationStore } from '$lib/stores';
 
-	let email = '';
-	let password = '';
+	const { form, errors, handleChange, handleSubmit, touched } = createForm({
+		initialValues: { email: '', password: '' },
+		validationSchema: loginRequestSchema,
+		onSubmit: async (values) => {
+			console.log(values);
+			const error = await authStore.login(values);
 
-	let error = '';
-	$: invalid = !!error;
+			if (!error) {
+				notificationStore.push({ type: 'success', message: 'Zalogowano pomyślnie' });
+				return;
+			}
 
-	const fields = writable({ email: '', password: '' });
-
-	const handleSubmit = async () => {
-		const err = await authStore.login({
-			email,
-			password
-		});
-
-		if (!err) return;
-
-		error = err.payload.message;
-	};
+			$errors.email = error.payload.message;
+		}
+	});
 </script>
 
 <div class="container">
@@ -33,33 +32,34 @@
 				<div class="mdc-typography--headline2">Logowanie</div>
 				<div>
 					<Textfield
-						type="email"
-						required
 						class="text"
-						bind:value={$fields.email}
+						bind:value={$form.email}
 						label="Email"
 						name="email"
-						bind:invalid
+						invalid={!!$errors.email}
+						on:change={handleChange}
 					>
-						<HelperText validationMsg slot="helper">{error}</HelperText>
+						<HelperText validationMsg slot="helper">{$errors.email}</HelperText>
 					</Textfield>
 				</div>
-				<Textfield
-					required
-					class="text"
-					bind:value={$fields.password}
-					type="password"
-					label="Password"
-					name="password"
-					bind:invalid
-				/>
+				<div>
+					<Textfield
+						class="text"
+						bind:value={$form.password}
+						type="password"
+						label="Password"
+						name="password"
+						invalid={!!$errors.password}
+						on:change={handleChange}
+					>
+						<HelperText validationMsg slot="helper">{$errors.password}</HelperText>
+					</Textfield>
+				</div>
 				<Button type="submit">Login</Button>
 			</div>
 		</form>
 	</Card>
 </div>
-{$fields.email}
-{$fields.password}
 
 <style lang="scss">
 	.container {

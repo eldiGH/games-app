@@ -28,8 +28,8 @@ endpoint(
 		validationSchema: loginRequestSchema
 	},
 	async (req, res) => {
-		const token = await AuthService.login(req.body);
+		const response = await AuthService.login(req.body);
 
-		res.send({ token });
+		res.send(response);
 	}
 );
