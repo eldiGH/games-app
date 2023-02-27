@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
 const createSidebarStore = () => {
-	const { set, subscribe, update } = writable(true);
+	const { set, subscribe, update } = writable(false);
 
 	const toggle = () => {
 		update((val) => !val);

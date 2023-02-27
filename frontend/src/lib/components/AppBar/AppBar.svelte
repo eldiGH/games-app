@@ -1,12 +1,12 @@
 <script lang="ts">
 	import TopAppBar, { Row, Section, Title } from '@smui/top-app-bar';
-	import IconButton from '@smui/icon-button';
+	import IconButton, { Icon } from '@smui/icon-button';
 	import Button, { Label } from '@smui/button';
 	import List, { Item, Text } from '@smui/list';
 	import Menu from '@smui/menu';
 	import { playerStore, authStore, sidebarStore } from '$lib/stores';
 
-	let menu: Menu;
+	let open = false;
 </script>
 
 <TopAppBar variant="static">
@@ -14,7 +14,6 @@
 		<Section>
 			<IconButton
 				on:click={() => {
-					console.log(1);
 					sidebarStore.toggle();
 				}}
 				class="material-icons">menu</IconButton
@@ -23,10 +22,15 @@
 		</Section>
 		<Section align="end" toolbar>
 			<div>
-				<Button on:click={() => menu.setOpen(true)}>
-					<Label>{$playerStore?.nickname}</Label>
+				<Button on:click={() => (open = !open)}>
+					<Label><span>{$playerStore?.nickname}</span></Label>
+					{#if open}
+						<Icon class="material-icons" on>expand_less</Icon>
+					{:else}
+						<Icon class="material-icons">expand_more</Icon>
+					{/if}
 				</Button>
-				<Menu anchorCorner="BOTTOM_START" bind:this={menu}>
+				<Menu bind:open anchorCorner="BOTTOM_START">
 					<List>
 						<Item on:SMUI:action={() => authStore.logout()}>
 							<Text>Wyloguj</Text>
@@ -42,5 +46,9 @@
 	a {
 		text-decoration: none;
 		color: inherit;
+	}
+
+	span {
+		text-transform: none;
 	}
 </style>

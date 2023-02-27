@@ -135,6 +135,12 @@
 		</Accordion>
 	</Content>
 </Drawer>
-<AppContent>
+<AppContent class="app-content">
 	<slot />
 </AppContent>
+
+<style lang="scss">
+	:global(.app-content) {
+		width: 100%;
+	}
+</style>

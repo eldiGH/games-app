@@ -27,5 +27,7 @@
 	div {
 		position: relative;
 		flex-grow: 1;
+		overflow: hidden;
+		display: flex;
 	}
 </style>
