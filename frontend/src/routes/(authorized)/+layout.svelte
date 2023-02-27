@@ -11,7 +11,7 @@
 </script>
 
 {#if $isPlayerDataLoading}
-	<Loader />
+	<Loader show />
 {:else if $playerStore}
 	<AppBar />
 	<div>

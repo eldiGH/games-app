@@ -1,1 +1,0 @@
-<a href="/snake">Snake</a>

@@ -25,7 +25,7 @@
 			<Panel bind:open={chessOpen}>
 				<AccordionHeader>
 					Szachy
-					<IconButton slot="icon" toggle pressed={chessOpen}>
+					<IconButton tabindex={-1} slot="icon" toggle pressed={chessOpen}>
 						<Icon class="material-icons" on>expand_less</Icon>
 						<Icon class="material-icons">expand_more</Icon>
 					</IconButton>
@@ -47,7 +47,7 @@
 			<Panel bind:open={checkersOpen}>
 				<AccordionHeader>
 					Warcaby
-					<IconButton slot="icon" toggle pressed={checkersOpen}>
+					<IconButton tabindex={-1} slot="icon" toggle pressed={checkersOpen}>
 						<Icon class="material-icons" on>expand_less</Icon>
 						<Icon class="material-icons">expand_more</Icon>
 					</IconButton>
@@ -69,7 +69,7 @@
 			<Panel bind:open={shipsOpen}>
 				<AccordionHeader>
 					Statki
-					<IconButton slot="icon" toggle pressed={shipsOpen}>
+					<IconButton tabindex={-1} slot="icon" toggle pressed={shipsOpen}>
 						<Icon class="material-icons" on>expand_less</Icon>
 						<Icon class="material-icons">expand_more</Icon>
 					</IconButton>
@@ -91,7 +91,7 @@
 			<Panel bind:open={ticTacToeOpen}>
 				<AccordionHeader>
 					Kółko i Krzyżyk
-					<IconButton slot="icon" toggle pressed={ticTacToeOpen}>
+					<IconButton tabindex={-1} slot="icon" toggle pressed={ticTacToeOpen}>
 						<Icon class="material-icons" on>expand_less</Icon>
 						<Icon class="material-icons">expand_more</Icon>
 					</IconButton>
@@ -113,7 +113,7 @@
 			<Panel bind:open={minesweeperOpen}>
 				<AccordionHeader>
 					Saper
-					<IconButton slot="icon" toggle pressed={minesweeperOpen}>
+					<IconButton tabindex={-1} slot="icon" toggle pressed={minesweeperOpen}>
 						<Icon class="material-icons" on>expand_less</Icon>
 						<Icon class="material-icons">expand_more</Icon>
 					</IconButton>

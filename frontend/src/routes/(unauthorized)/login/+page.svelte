@@ -2,60 +2,76 @@
 	import Textfield from '@smui/textfield';
 	import HelperText from '@smui/textfield/helper-text';
 	import Card from '@smui/card';
-	import Button from '@smui/button';
 	import { authStore } from '$lib/stores/auth';
-	import { createForm } from 'svelte-forms-lib';
-	import { loginRequestSchema } from '@shared/schemas';
+	import { loginRequestSchema, type LoginRequest } from '@shared/schemas';
 	import { notificationStore } from '$lib/stores';
+	import { t } from 'svelte-i18n';
+	import { ApiErrorCode } from '@shared/types';
+	import { createForm } from '$lib/stores/form';
+	import Link from '$lib/components/Link/Link.svelte';
+	import Button from '$lib/components/Button/Button.svelte';
 
-	const { form, errors, handleChange, handleSubmit, touched } = createForm({
-		initialValues: { email: '', password: '' },
-		validationSchema: loginRequestSchema,
-		onSubmit: async (values) => {
-			console.log(values);
-			const error = await authStore.login(values);
+	const { values, errors, isSubmitting, submit, isValid, touched, handleBlur } = createForm(
+		{ email: '', password: '' },
+		loginRequestSchema
+	);
 
-			if (!error) {
-				notificationStore.push({ type: 'success', message: 'Zalogowano pomyślnie' });
-				return;
-			}
+	const handleSubmit = async (values: LoginRequest) => {
+		const error = await authStore.login(values);
 
-			$errors.email = error.payload.message;
+		if (!error) {
+			notificationStore.pushSuccess('Zalogowano pomyślnie');
+			return;
 		}
-	});
+
+		if (error.payload.errorCode === ApiErrorCode.EMAIL_OR_PASSWORD_NOT_VALID)
+			$errors.email = 'Email lub hasło są nieprawidłowe';
+		else notificationStore.pushError(error.payload.message);
+	};
 </script>
 
+<svelte:head>
+	<title>GamesApp - Logowanie</title>
+</svelte:head>
+
 <div class="container">
-	<Card style="width: 600px">
-		<form on:submit={handleSubmit}>
+	<Card class="card">
+		<form on:submit={submit(handleSubmit)}>
 			<div class="card-content">
 				<div class="mdc-typography--headline2">Logowanie</div>
 				<div>
 					<Textfield
 						class="text"
-						bind:value={$form.email}
-						label="Email"
+						bind:value={$values.email}
+						on:blur={handleBlur}
+						label="Email*"
 						name="email"
-						invalid={!!$errors.email}
-						on:change={handleChange}
+						invalid={$touched.email && !!$errors.email}
+						disabled={$isSubmitting}
 					>
-						<HelperText validationMsg slot="helper">{$errors.email}</HelperText>
+						<HelperText validationMsg slot="helper"
+							>{$touched.email && $t($errors.email)}</HelperText
+						>
 					</Textfield>
 				</div>
 				<div>
 					<Textfield
 						class="text"
-						bind:value={$form.password}
+						bind:value={$values.password}
+						on:blur={handleBlur}
 						type="password"
-						label="Password"
+						label="Hasło*"
 						name="password"
-						invalid={!!$errors.password}
-						on:change={handleChange}
+						invalid={$touched.email && !!$errors.password}
+						disabled={$isSubmitting}
 					>
-						<HelperText validationMsg slot="helper">{$errors.password}</HelperText>
+						<HelperText validationMsg slot="helper"
+							>{$touched.email && $t($errors.password)}</HelperText
+						>
 					</Textfield>
 				</div>
-				<Button type="submit">Login</Button>
+				<Button loading={$isSubmitting} disabled={!$isValid} type="submit">Zaloguj</Button>
+				<Link disabled={$isSubmitting} href="/register">Rejestracja</Link>
 			</div>
 		</form>
 	</Card>
@@ -73,6 +89,11 @@
 
 			:global(.text) {
 				width: 400px;
+			}
+
+			:global(.card) {
+				width: 600px;
+				position: relative;
 			}
 		}
 	}

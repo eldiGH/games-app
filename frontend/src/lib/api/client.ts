@@ -3,12 +3,11 @@ import { HttpStatus } from '@shared/types';
 import { get } from 'svelte/store';
 import urlJoin from 'url-join';
 import config from '../../config.json';
-import { pushNotification } from '$lib/components/Notification/Notification.svelte';
 
 const getAuthStore = async () => {
-	const { authStore, notificationStore } = await import('$lib/stores');
+	const { authStore, notificationStore, globalError } = await import('$lib/stores');
 
-	return { authStore, notificationStore };
+	return { authStore, notificationStore, globalError };
 };
 
 export const getClient = (controller: string) => {
@@ -23,7 +22,7 @@ export const getClient = (controller: string) => {
 			'Content-Type': 'application/json'
 		};
 
-		const { authStore, notificationStore } = await getAuthStore();
+		const { authStore, notificationStore, globalError } = await getAuthStore();
 		const { token } = get(authStore);
 
 		if (token) headers.Authorization = `Bearer ${token}`;
@@ -35,17 +34,23 @@ export const getClient = (controller: string) => {
 				headers
 			});
 
-			const data = await res.json();
+			let data;
+
+			if (parseInt(res.headers.get('Content-Length') ?? '0') === 0) data = {};
+			else data = await res.json();
 
 			if (res.status === HttpStatus.UNAUTHORIZED) {
 				authStore.logout();
 			}
-			if (res.status >= 400)
+			if (res.status >= 500) throw new Error('Received status 500');
+			else if (res.status >= 400)
 				return { data: undefined, error: { status: res.status, payload: data } };
 
 			return { data, error: undefined };
 		} catch (e) {
-			notificationStore.push({});
+			notificationStore.pushError('Wystąpił błąd, spróbuj ponownie później');
+
+			globalError.set(true);
 
 			throw e;
 		}

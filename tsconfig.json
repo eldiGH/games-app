@@ -11,7 +11,8 @@
 		"paths": {
 			"@shared/types": ["shared/types/index.ts"],
 			"@shared/classes": ["shared/classes/index.ts"],
-			"@shared/schemas": ["shared/schemas/index.ts"]
+			"@shared/schemas": ["shared/schemas/index.ts"],
+			"@shared/locales/*": ["shared/locales/*"]
 		},
 		"importsNotUsedAsValues": "error",
 		"isolatedModules": true,

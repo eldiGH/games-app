@@ -1,18 +1,24 @@
 import { writable } from 'svelte/store';
 
+export type NotificationType = 'success' | 'error';
+
 export interface Notification {
-	type: 'success';
+	type: NotificationType;
 	message: string;
 }
 
 const createNotificationStore = () => {
 	const { subscribe, set } = writable<Notification | null>(null);
 
-	const push = (notification: Notification) => {
-		set(notification);
+	const pushSuccess = (message: string) => {
+		set({ message, type: 'success' });
 	};
 
-	return { subscribe, push };
+	const pushError = (message: string) => {
+		set({ message, type: 'error' });
+	};
+
+	return { subscribe, pushSuccess, pushError };
 };
 
 export const notificationStore = createNotificationStore();

@@ -6,7 +6,7 @@ export const validationMiddlewareFactory =
 	(schema: Schema): Middleware =>
 	async (req, _res, next) => {
 		try {
-			const body = await schema.validate(req.body, { abortEarly: false });
+			const body = await schema.validate(req.body, { abortEarly: false, stripUnknown: true });
 			req.body = body;
 			next();
 		} catch (e) {

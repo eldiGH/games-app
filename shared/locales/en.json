@@ -1,0 +1,19 @@
+{
+	"errors": {
+		"email": {
+			"required": "Email is required",
+			"notValid": "Email is not valid"
+		},
+		"password": {
+			"required": "Password is required",
+			"differs": "Passwords differs",
+			"min": "Password must have minimum 3 characters",
+			"max": "Password must have maximum 20 characters"
+		},
+		"nickname": {
+			"required": "Nickname is required",
+			"min": "Nickname must have minimum 3 characters",
+			"max": "Nickname must have maximum 20 characters"
+		}
+	}
+}

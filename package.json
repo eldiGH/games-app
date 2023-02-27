@@ -71,7 +71,7 @@
 		"source-map-support": "^0.5.21",
 		"svelte": "^3.54.0",
 		"svelte-check": "^2.9.2",
-		"svelte-forms": "^2.3.1",
+		"svelte-i18n": "^3.6.0",
 		"svelte-material-ui": "7.0.0-beta.0",
 		"ts-patch": "^2.1.0",
 		"tslib": "^2.4.1",
@@ -91,7 +91,6 @@
 		"extensionless": "^1.1.0",
 		"jsonwebtoken": "^9.0.0",
 		"prisma": "^4.10.1",
-		"svelte-forms-lib": "^2.0.1",
 		"tsconfig-paths": "^4.1.2",
 		"ws": "^8.12.0",
 		"yup": "^1.0.0"

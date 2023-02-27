@@ -7,11 +7,17 @@
 	import '@fontsource/roboto/700.css';
 	import '../../../node_modules/svelte-material-ui/bare.css';
 	import Notification from '$lib/components/Notification/Notification.svelte';
+	import { globalError } from '$lib/stores';
+	import ErrorScreen from '$lib/components/ErrorScreen/ErrorScreen.svelte';
 </script>
 
 <div>
 	<Notification />
-	<slot />
+	{#if $globalError}
+		<ErrorScreen />
+	{:else}
+		<slot />
+	{/if}
 </div>
 
 <style lang="scss">

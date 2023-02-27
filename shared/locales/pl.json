@@ -1,0 +1,19 @@
+{
+	"errors": {
+		"email": {
+			"required": "Email jest wymagany",
+			"notValid": "Email jest niepoprawny"
+		},
+		"password": {
+			"required": "Hasło jest wymagane",
+			"differs": "Hasła są różne",
+			"max": "Hasło musi mieć maksymalnie 20 znaków",
+			"min": "Hasło musi mieć minimum 3 znaki"
+		},
+		"nickname": {
+			"max": "Nick musi mieć maksymalnie 20 znaków",
+			"min": "Nick musi mieć minimum 3 znaki",
+			"required": "Nick jest wymagany"
+		}
+	}
+}
