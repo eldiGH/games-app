@@ -1,7 +1,32 @@
+<script lang="ts" context="module">
+	export interface BoardItem {
+		imgUrl?: string;
+		draggable?: boolean;
+		marked?: boolean;
+	}
+
+	export type BoardData = BoardItem[][];
+
+	export interface Boundary {
+		x: number;
+		y: number;
+		xMax: number;
+		yMax: number;
+	}
+
+	export interface DraggedItem {
+		ref: HTMLImageElement;
+		x: number;
+		y: number;
+		offsetLeft: number;
+		offsetTop: number;
+		boundary: Boundary;
+	}
+</script>
+
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import type { BoardData, DraggedItem, Boundary } from './types';
 	import { Point } from '@shared/classes';
 
 	export let data: BoardData;
@@ -24,14 +49,18 @@
 
 		const ref = boardRef.children[y].children[x].children[0] as HTMLImageElement;
 
+		const boardRect = boardRef.getBoundingClientRect();
+
 		const boundary: Boundary = {
-			x: boardRef.offsetLeft,
-			y: boardRef.offsetTop,
-			xMax: boardRef.offsetLeft + boardRef.offsetWidth,
-			yMax: boardRef.offsetTop + boardRef.offsetHeight
+			x: boardRect.left,
+			y: boardRect.top,
+			xMax: boardRect.right,
+			yMax: boardRect.bottom
 		};
 
-		draggedItem = { x, y, ref, offsetLeft: ref.offsetLeft, offsetTop: ref.offsetTop, boundary };
+		const itemRect = ref.getBoundingClientRect();
+
+		draggedItem = { x, y, ref, offsetLeft: itemRect.left, offsetTop: itemRect.top, boundary };
 		onDragStart(new Point(x, y));
 	};
 

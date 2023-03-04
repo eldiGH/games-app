@@ -8,24 +8,34 @@
 
 <script lang="ts">
 	import Card from '@smui/card';
+	import Link from '../Link/Link.svelte';
 
 	export let data: CardData;
 </script>
 
-<div class="container">
-	<Card class="card">
-		<div class="mdc-typography--headline4 header">{data.title}</div>
-		<img src={data.img} alt={data.title} />
-	</Card>
-</div>
+<Link href={data.url}>
+	<div class="container">
+		<Card class="card">
+			<div class="mdc-typography--headline4 header">{data.title}</div>
+			<img draggable="false" src={data.img} alt={data.title} />
+		</Card>
+	</div>
+</Link>
 
 <style lang="scss">
+	@use '@material/card';
+	@use '@material/theme/color-palette';
+
 	.container {
+		user-select: none;
 		cursor: pointer;
 		transition: transform 0.1s ease-in-out;
+		color: white;
 
 		:global(.card) {
 			padding: 40px;
+
+			@include card.fill-color(color-palette.$blue-grey-800);
 		}
 
 		.header {

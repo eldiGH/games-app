@@ -4,7 +4,7 @@
 
 	const cards: CardData[] = [
 		{ title: 'Szachy', url: '/chess', img: '/chess.png' },
-		{ title: 'Warcaby', url: '/chess', img: '/chess.png' },
+		{ title: 'Warcaby', url: '/checkers/1', img: '/checkers.png' },
 		{ title: 'Statki', url: '/chess', img: '/chess.png' },
 		{ title: 'Kółko i krzyżyk', url: '/chess', img: '/chess.png' },
 		{ title: 'Saper', url: '/chess', img: '/chess.png' },
@@ -14,7 +14,7 @@
 
 <div class="container">
 	{#each cards as card}
-		<div class="card-container">
+		<div class="game__card-container">
 			<GameCard data={card} />
 		</div>
 	{/each}
@@ -22,21 +22,22 @@
 
 <style lang="scss">
 	.container {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 100px;
+		display: flex;
 		padding-bottom: 200px;
+		justify-content: space-around;
+		flex-wrap: wrap;
+		margin: 40px 40px;
+		gap: 40px;
 
 		@media (max-width: 1670px) {
-			grid-template-columns: repeat(2, 1fr);
 		}
 
 		@media (max-width: 1100px) {
-			grid-template-columns: repeat(1, 1fr);
 		}
 	}
 
-	.card-container {
+	.game__card-container {
+		flex-basis: 28%;
 		display: flex;
 		justify-content: center;
 	}

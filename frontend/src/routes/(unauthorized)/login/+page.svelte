@@ -79,6 +79,9 @@
 
 <style lang="scss">
 	.container {
+		display: flex;
+		justify-content: center;
+
 		.card-content {
 			padding: 20px;
 			display: flex;
@@ -86,15 +89,14 @@
 			flex-direction: column;
 			align-items: center;
 			gap: 16px;
+		}
 
-			:global(.text) {
-				width: 400px;
-			}
+		:global(.text) {
+			width: 400px;
+		}
 
-			:global(.card) {
-				width: 600px;
-				position: relative;
-			}
+		:global(.card) {
+			width: 600px;
 		}
 	}
 </style>

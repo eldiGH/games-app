@@ -13,7 +13,7 @@
 	}
 </script>
 
-<Button class="custom-button" {...$$restProps} disabled={disabled || loading}>
+<Button variant="raised" class="custom-button" {...$$restProps} disabled={disabled || loading}>
 	{#if loading}
 		<CircularProgress class="button-loader" indeterminate />
 	{/if}

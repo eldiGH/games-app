@@ -140,7 +140,17 @@
 </AppContent>
 
 <style lang="scss">
+	@use '@material/theme/color-palette';
+
 	:global(.app-content) {
 		width: 100%;
+	}
+
+	:global(.smui-accordion) {
+		color: white;
+	}
+
+	:global(.smui-accordion__panel) {
+		background: color-palette.$blue-grey-700;
 	}
 </style>

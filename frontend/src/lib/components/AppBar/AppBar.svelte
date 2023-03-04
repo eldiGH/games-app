@@ -9,7 +9,7 @@
 	let open = false;
 </script>
 
-<TopAppBar variant="static">
+<TopAppBar class="custom-app-bar" variant="static">
 	<Row>
 		<Section>
 			<IconButton
@@ -43,11 +43,17 @@
 </TopAppBar>
 
 <style lang="scss">
+	@use '@material/theme/color-palette';
+	@use '@material/top-app-bar';
+
+	:global(.custom-app-bar) {
+		@include top-app-bar.fill-color(color-palette.$blue-grey-700);
+	}
+
 	a {
 		text-decoration: none;
 		color: inherit;
 	}
-
 	span {
 		text-transform: none;
 	}

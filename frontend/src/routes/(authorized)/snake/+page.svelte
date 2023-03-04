@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { CellType, getSnake, type SnakeGameField } from '../../lib/snake';
+	import { CellType, getSnake, type SnakeGameField } from '$lib/snake';
 
 	let field: SnakeGameField = [];
 
