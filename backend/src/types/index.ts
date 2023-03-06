@@ -5,3 +5,5 @@ export * from './Req';
 export * from './Res';
 export * from './ValidateNicknameAndEmail';
 export * from './WsController';
+export * from './Room';
+export * from './ReqWithPlayer';

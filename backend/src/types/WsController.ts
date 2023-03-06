@@ -1,7 +1,9 @@
-import type WebSocket from 'ws';
+import type { Player } from '@prisma/client';
+import type { WsMessage, WsMessageType } from '@shared/types';
+import type { Server } from 'ws';
 
 export interface WsController {
-	wss: WebSocket.Server;
+	wss: Server;
 	path: string;
 	hooks: WsHook[];
 }
@@ -11,4 +13,14 @@ export interface WsHook {
 	handler: WsHandler;
 }
 
-export type WsHandler<T = Record<string, unknown>> = (data: T) => void;
+export type WsHandler<T = Record<string, unknown> | undefined> = (
+	socket: WsSocket,
+	data: T
+) => void;
+
+export type WsSendHandler = <T extends WsMessageType>(type: T, data: WsMessage<T>['data']) => void;
+
+export interface WsSocket {
+	send: WsSendHandler;
+	player: Player;
+}
