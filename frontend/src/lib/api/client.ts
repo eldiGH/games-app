@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import urlJoin from 'url-join';
 import config from '../../config.json';
 
-const getAuthStore = async () => {
+const getStores = async () => {
 	const { authStore, notificationStore, globalError } = await import('$lib/stores');
 
 	return { authStore, notificationStore, globalError };
@@ -22,13 +22,14 @@ export const getClient = (controller: string) => {
 			'Content-Type': 'application/json'
 		};
 
-		const { authStore, notificationStore, globalError } = await getAuthStore();
+		const { authStore, notificationStore, globalError } = await getStores();
 		const { token } = get(authStore);
 
 		if (token) headers.Authorization = `Bearer ${token}`;
 
+		const apiPath = `${config.USE_HTTPS ? 'https://' : 'http://'}${config.API_URL}`;
 		try {
-			const res = await fetch(urlJoin(config.API_URL, controller, url), {
+			const res = await fetch(urlJoin(apiPath, controller, url), {
 				method,
 				body: finalBody,
 				headers
