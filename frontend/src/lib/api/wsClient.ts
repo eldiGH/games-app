@@ -1,5 +1,5 @@
-import type { WsClient, WsConnect } from '$lib/types/WsClient';
-import type { WsMessage, WsMessageType } from '@shared/types';
+import type { WsControllerFactory, WsMessageListener } from '$lib/types';
+import type { WsAnyMessage, WsMessage, WsMessageType } from '@shared/types';
 import { get } from 'svelte/store';
 import urljoin from 'url-join';
 import config from '../../config.json';
@@ -10,11 +10,16 @@ const getStores = async () => {
 	return { authStore };
 };
 
-export const getWsClient = (controller: string): WsClient => {
+const getDataFromEvent = (event: MessageEvent): WsAnyMessage => JSON.parse(event.data);
+
+export const wsClientFactory: WsControllerFactory = (controller: string) => {
 	const apiPath = `${config.USE_WSS ? 'wss://' : 'ws://'}${config.API_URL}`;
 	const url = urljoin(apiPath, controller);
 
 	const connect = async () => {
+		const messageQueue: string[] = [];
+		const messageListeners: { type: WsMessageType; callbacks: WsMessageListener<never>[] }[] = [];
+
 		const { authStore } = await getStores();
 
 		const token = get(authStore).token;
@@ -25,18 +30,87 @@ export const getWsClient = (controller: string): WsClient => {
 
 		const socket = new WebSocket(`${url}?accessToken=${accessToken}`);
 
-		socket.onmessage = (event) => {
-			console.log(event);
-		};
+		socket.addEventListener('message', (event) => {
+			const { data, type } = getDataFromEvent(event);
+
+			const listener = messageListeners.find((listener) => listener.type === type);
+
+			if (!listener) return;
+
+			for (const callback of listener.callbacks) {
+				callback(data as never);
+			}
+		});
+
+		socket.addEventListener('open', () => {
+			for (const message of messageQueue) {
+				socket.send(message);
+			}
+
+			messageQueue.splice(0, messageQueue.length);
+		});
 
 		const send = <T extends WsMessageType>(type: T, data: WsMessage<T>['data']) => {
-			const payload = JSON.stringify({ type, data });
+			const message = JSON.stringify({ type, data });
 
-			socket.send(payload);
+			if (socket.readyState === socket.OPEN) {
+				socket.send(message);
+			} else messageQueue.push(message);
 		};
 
-		return { send, socket };
+		const waitForMessage = <T extends WsMessageType>(
+			type: T,
+			waitTime = 3000
+		): Promise<WsMessage<T>['data']> => {
+			return new Promise((res, rej) => {
+				const callback = (event: MessageEvent) => {
+					const data = getDataFromEvent(event);
+
+					const timeout = setTimeout(() => {
+						socket.removeEventListener('message', callback);
+						rej(new Error('Server did not respond with awaited message'));
+					}, waitTime);
+
+					if (data.type === type) {
+						socket.removeEventListener('message', callback);
+						clearTimeout(timeout);
+
+						res(data.data);
+					}
+				};
+
+				socket.addEventListener('message', callback);
+			});
+		};
+
+		const addMessageListener = <T extends WsMessageType>(
+			type: T,
+			callback: WsMessageListener<T>
+		) => {
+			let listener = messageListeners.find((listener) => type === listener.type);
+
+			if (!listener) {
+				listener = { type, callbacks: [] };
+				messageListeners.push(listener);
+			}
+
+			if (listener.callbacks.includes(callback)) return;
+
+			listener.callbacks.push(callback);
+		};
+
+		const removeMessageListener = (callback: WsMessageListener<never>) => {
+			for (const listener of messageListeners) {
+				const index = listener.callbacks.findIndex((cb) => cb === callback);
+				if (index >= 0) {
+					listener.callbacks.splice(index, 1);
+					break;
+				}
+			}
+		};
+
+		return { send, socket, waitForMessage, addMessageListener, removeMessageListener };
 	};
 
-	return { connect };
+	return connect;
 };

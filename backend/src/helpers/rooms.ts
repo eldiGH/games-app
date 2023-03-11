@@ -32,13 +32,13 @@ export const handleRooms = (message: WsMessageHandler, maxPlayers = 2) => {
 
 	const getRoomByPlayer = (player: WsSocket) => rooms.find((room) => room.players.includes(player));
 
-	const roomsInfo = rooms.map(({ id, players, spectators }) => ({
-		id,
-		players: players.map(({ player }) => player.nickname),
-		spectators: spectators.map(({ player }) => player.nickname)
-	}));
-
 	const sendCurrentRoomsList = () => {
+		const roomsInfo = rooms.map(({ id, players, spectators }) => ({
+			id,
+			players: players.map(({ player }) => player.nickname),
+			spectators: spectators.map(({ player }) => player.nickname)
+		}));
+
 		for (const socket of roomListSubscribers) {
 			socket.send(WsMessageType.RoomsList, roomsInfo);
 		}

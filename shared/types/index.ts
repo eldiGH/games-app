@@ -5,3 +5,4 @@ export * from './JwtPayload';
 export * from './PlayerWithFriends';
 export * from './WsMessage';
 export * from './ApiError';
+export * from './RoomInfo';

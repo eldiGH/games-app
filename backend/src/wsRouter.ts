@@ -1,6 +1,6 @@
 import type { IncomingMessage, Server, ServerResponse } from 'http';
 import { parse } from 'url';
-import { authenticate } from './helpers';
+import { accessTokenQueryRegex, authenticate } from './helpers';
 import type { ReqWithPlayer } from './types';
 import { CheckersController } from './ws-controllers';
 
@@ -8,10 +8,17 @@ const controllers = [CheckersController];
 
 export const addWebsocket = (server: Server<typeof IncomingMessage, typeof ServerResponse>) => {
 	server.on('upgrade', async (req, socket, head) => {
-		const { pathname } = parse(req.url ?? '');
+		const { pathname, query } = parse(req.url ?? '');
 
 		try {
-			const player = await authenticate(req.headers);
+			if (!query) throw new Error();
+
+			const tokenMatch = query.match(accessTokenQueryRegex);
+			if (!tokenMatch) throw new Error();
+
+			const token = tokenMatch[0];
+
+			const player = await authenticate(token);
 
 			for (const controller of controllers) {
 				if (pathname === controller.path) {
