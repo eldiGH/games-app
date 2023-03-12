@@ -12,6 +12,8 @@
 @use '@material/typography/index' as typography;
 @use '@material/typography/mdc-typography';
 
+@use '@material/data-table';
+
 html {
 	@include typography.typography('body1');
 }
@@ -71,4 +73,24 @@ body {
 
 * {
 	box-sizing: border-box;
+}
+
+* {
+	&::-webkit-scrollbar {
+		width: 7px;
+	}
+
+	&::-webkit-scrollbar-track {
+		-webkit-box-shadow: inset 1px 0px 0px 0px slategrey;
+		-moz-box-shadow: inset 1px 0px 0px 0px slategrey;
+		box-shadow: inset 1px 0px 0px 0px slategrey;
+		border-radius: 5px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background-color: rgba(0, 0, 0, 0.1);
+		border: 1px solid slategrey;
+		border-radius: 5px;
+		cursor: pointer;
+	}
 }

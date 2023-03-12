@@ -1,5 +1,5 @@
-import { WsMessageType } from '@shared/types';
-import type { Room, WsSocket } from '../types';
+import { RoomStatus, WsMessageType, type RoomInfo } from '@shared/types';
+import type { Room, WsClient } from '../types';
 import type { WsMessageHandler } from './ws';
 
 const getRandomRoomId = (currentIds: string[]): string => {
@@ -24,23 +24,50 @@ const getRandomRoomId = (currentIds: string[]): string => {
 	return id;
 };
 
-export const handleRooms = (message: WsMessageHandler, maxPlayers = 2) => {
-	const roomListSubscribers: WsSocket[] = [];
+export const handleRooms = (message: WsMessageHandler) => {
+	const roomListSubscribers: WsClient[] = [];
 	const rooms: Room[] = [];
 
-	const getRoomById = (id: string) => rooms.find((room) => room.id);
+	const getRoomById = (id: string) => rooms.find((room) => room.id === id);
 
-	const getRoomByPlayer = (player: WsSocket) => rooms.find((room) => room.players.includes(player));
+	const getRoomByClient = (client: WsClient) =>
+		rooms.find((room) => room.playersInRoom.includes(client));
+
+	const roomMapper = (room: Room): RoomInfo => {
+		const { id, players, playersInRoom, leader } = room;
+
+		return {
+			id,
+			leader: leader.player.nickname,
+			players: players.map((client) => (client ? playersInRoom.indexOf(client) : null)),
+			playersInRoom: playersInRoom.map(({ player }) => ({
+				nickname: player.nickname,
+				rating: 1000
+			})),
+			status: RoomStatus.Waiting,
+			time: 300
+		};
+	};
+
+	const getRoomsInfo = () => {
+		const roomsInfo: RoomInfo[] = rooms.map(roomMapper);
+
+		return roomsInfo;
+	};
 
 	const sendCurrentRoomsList = () => {
-		const roomsInfo = rooms.map(({ id, players, spectators }) => ({
-			id,
-			players: players.map(({ player }) => player.nickname),
-			spectators: spectators.map(({ player }) => player.nickname)
-		}));
+		const roomsInfo = getRoomsInfo();
 
-		for (const socket of roomListSubscribers) {
-			socket.send(WsMessageType.RoomsList, roomsInfo);
+		for (const client of roomListSubscribers) {
+			client.send(WsMessageType.RoomsList, roomsInfo);
+		}
+	};
+
+	const sendRoomData = (room: Room) => {
+		const roomInfo = roomMapper(room);
+
+		for (const client of room.playersInRoom) {
+			client.send(WsMessageType.RoomData, roomInfo);
 		}
 	};
 
@@ -52,45 +79,115 @@ export const handleRooms = (message: WsMessageHandler, maxPlayers = 2) => {
 		rooms.splice(roomIndex, 1);
 	};
 
-	const leaveRoom = (id: string, socket: WsSocket) => {
-		const room = getRoomById(id);
-		if (!room) return;
+	const leaveRoom = (room: Room, client: WsClient) => {
+		const playerIndex = room.players.indexOf(client);
 
-		const playerIndex = room.players.indexOf(socket);
-
-		if (playerIndex >= 0) {
-			room.players.splice(playerIndex, 1);
+		if (playerIndex !== -1) {
+			room.players.splice(playerIndex, 1, null);
 		}
 
-		if (room.players.length > 0) return;
+		const playerInRoomIndex = room.playersInRoom.indexOf(client);
 
-		removeRoom(room);
+		if (playerInRoomIndex !== -1) {
+			room.playersInRoom.splice(playerInRoomIndex, 1);
+		}
+
+		if (room.playersInRoom.length === 0) {
+			removeRoom(room);
+			return;
+		}
+
+		if (client === room.leader) {
+			room.leader = room.playersInRoom[0];
+		}
 	};
 
-	message(WsMessageType.SubscribeRoomList, (socket) => {
-		if (roomListSubscribers.includes(socket)) return;
+	const joinRoom = (room: Room, client: WsClient) => {
+		if (room.playersInRoom.includes(client)) return;
+		room.playersInRoom.push(client);
+	};
 
-		roomListSubscribers.push(socket);
+	message(WsMessageType.SubscribeRoomList, (client) => {
+		if (roomListSubscribers.includes(client)) return;
 
-		// socket.on('close', () => {
-		// 	const index = roomListSubscribers.indexOf(socket);
-		// 	roomListSubscribers.splice(index, 1);
-		// });
+		roomListSubscribers.push(client);
+
+		client.send(WsMessageType.RoomsList, getRoomsInfo());
+
+		client.onClose(() => {
+			const index = roomListSubscribers.indexOf(client);
+			if (index !== -1) roomListSubscribers.splice(index, 1);
+		});
 	});
 
-	message(WsMessageType.CreateRoom, (socket) => {
-		const currentRoom = getRoomByPlayer(socket);
+	message(WsMessageType.UnsubscribeRoomList, (client) => {
+		const index = roomListSubscribers.findIndex((sc) => sc === client);
+		if (index === -1) return;
 
-		if (currentRoom) leaveRoom(currentRoom.id, socket);
+		roomListSubscribers.splice(index, 1);
+	});
+
+	message(WsMessageType.CreateRoom, (client) => {
+		const currentRoom = getRoomByClient(client);
+
+		if (currentRoom) leaveRoom(currentRoom, client);
 
 		const currentRoomIds = Object.keys(rooms);
 		const newId = getRandomRoomId(currentRoomIds);
 
-		rooms.push({ id: newId, players: [socket], spectators: [] });
+		const newRoom: Room = {
+			id: newId,
+			leader: client,
+			players: [client, null],
+			playersInRoom: [client]
+		};
+		rooms.push(newRoom);
+
+		client.send(WsMessageType.RoomCreated, newId);
+
 		sendCurrentRoomsList();
 
-		// socket.on('close', () => {
-		// 	onRoomLeave(newId, socket);
-		// });
+		client.onClose(() => {
+			leaveRoom(newRoom, client);
+			sendCurrentRoomsList();
+		});
+	});
+
+	message(WsMessageType.JoinRoom, (client, id) => {
+		const room = getRoomById(id);
+		if (!room) return;
+
+		const currentRoom = getRoomByClient(client);
+
+		if (currentRoom && currentRoom.id !== id) {
+			leaveRoom(currentRoom, client);
+		}
+
+		if (room.playersInRoom.includes(client)) {
+			sendRoomData(room);
+			return;
+		}
+
+		joinRoom(room, client);
+		sendRoomData(room);
+
+		client.onClose(() => {
+			leaveRoom(room, client);
+			sendCurrentRoomsList();
+		});
+	});
+
+	message(WsMessageType.Sit, (client, index) => {
+		if (index < -1 || index > 1) return;
+
+		const room = getRoomByClient(client);
+		if (!room || room.players[index] !== null) return;
+
+		const currentSpot = room.players.indexOf(client);
+		if (currentSpot !== -1) room.players[currentSpot] = null;
+
+		if (index !== -1) room.players[index] = client;
+
+		sendRoomData(room);
 	});
 };

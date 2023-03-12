@@ -1,7 +1,8 @@
-import type { WsSocket } from './WsController';
+import type { WsClient } from './WsController';
 
 export interface Room {
 	id: string;
-	players: WsSocket[];
-	spectators: WsSocket[];
+	leader: WsClient;
+	players: (WsClient | null)[];
+	playersInRoom: WsClient[];
 }

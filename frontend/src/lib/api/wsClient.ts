@@ -10,7 +10,7 @@ const getStores = async () => {
 	return { authStore };
 };
 
-const getDataFromEvent = (event: MessageEvent): WsAnyMessage => JSON.parse(event.data);
+const getMessageFromEvent = (event: MessageEvent): WsAnyMessage => JSON.parse(event.data);
 
 export const wsClientFactory: WsControllerFactory = (controller: string) => {
 	const apiPath = `${config.USE_WSS ? 'wss://' : 'ws://'}${config.API_URL}`;
@@ -31,7 +31,7 @@ export const wsClientFactory: WsControllerFactory = (controller: string) => {
 		const socket = new WebSocket(`${url}?accessToken=${accessToken}`);
 
 		socket.addEventListener('message', (event) => {
-			const { data, type } = getDataFromEvent(event);
+			const { data, type } = getMessageFromEvent(event);
 
 			const listener = messageListeners.find((listener) => listener.type === type);
 
@@ -64,20 +64,20 @@ export const wsClientFactory: WsControllerFactory = (controller: string) => {
 		): Promise<WsMessage<T>['data']> => {
 			return new Promise((res, rej) => {
 				const callback = (event: MessageEvent) => {
-					const data = getDataFromEvent(event);
+					const message = getMessageFromEvent(event);
 
-					const timeout = setTimeout(() => {
-						socket.removeEventListener('message', callback);
-						rej(new Error('Server did not respond with awaited message'));
-					}, waitTime);
+					if (message.type !== type) return;
 
-					if (data.type === type) {
-						socket.removeEventListener('message', callback);
-						clearTimeout(timeout);
+					socket.removeEventListener('message', callback);
+					clearTimeout(timeout);
 
-						res(data.data);
-					}
+					res(message.data);
 				};
+
+				const timeout = setTimeout(() => {
+					socket.removeEventListener('message', callback);
+					rej(new Error('Server did not respond with awaited message'));
+				}, waitTime);
 
 				socket.addEventListener('message', callback);
 			});

@@ -1,31 +1,53 @@
 <script lang="ts">
 	import { getContext, onDestroy, onMount } from 'svelte';
 	import { checkersContextKey, type CheckersContext } from './+layout.svelte';
-	import { WsMessageType, type RoomInfo } from '@shared/types';
+	import { goto } from '$app/navigation';
+	import RoomsList from '$lib/components/RoomsList/RoomsList.svelte';
 
 	const clientStore = getContext<CheckersContext>(checkersContextKey);
 
-	let rooms: RoomInfo[] = [];
-
-	const roomListUpdateHandler = (data: RoomInfo[]) => {
-		rooms = data;
-		console.log('!!!!');
-	};
+	let isCreating = false;
 
 	$: {
 		$clientStore?.subscribeList();
-		$clientStore?.addMessageListener(WsMessageType.RoomsList, roomListUpdateHandler);
 	}
+
+	$: roomsStore = $clientStore?.roomsList;
+	$: rooms = $roomsStore;
 
 	onDestroy(() => {
 		$clientStore?.unsubscribeList();
 	});
+
+	const handleNewTableClick = async () => {
+		const client = $clientStore;
+		if (!client) return;
+
+		isCreating = true;
+		try {
+			const roomId = await client.createRoom();
+			goto(`/checkers/${roomId}`);
+		} finally {
+			isCreating = false;
+		}
+	};
+
+	const handleRoomJoin = async (id: string) => {
+		const client = $clientStore;
+		if (!client) return;
+
+		goto(`/checkers/${id}`);
+	};
 </script>
 
 <svelte:head>
 	<title>GamesApp - Warcaby</title>
 </svelte:head>
 
-{#each rooms as room}
-	<div>{room.id}</div>
-{/each}
+<RoomsList
+	onRoomJoin={handleRoomJoin}
+	{isCreating}
+	title="Warcaby"
+	data={rooms ?? null}
+	onNewRoomClick={handleNewTableClick}
+/>

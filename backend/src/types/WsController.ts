@@ -1,6 +1,6 @@
 import type { Player } from '@prisma/client';
 import type { WsMessage, WsMessageType } from '@shared/types';
-import type { Server } from 'ws';
+import type { Server, WebSocket } from 'ws';
 
 export interface WsController {
 	wss: Server;
@@ -14,13 +14,16 @@ export interface WsHook {
 }
 
 export type WsHandler<T = Record<string, unknown> | undefined> = (
-	socket: WsSocket,
+	socket: WsClient,
 	data: T
 ) => void;
 
 export type WsSendHandler = <T extends WsMessageType>(type: T, data: WsMessage<T>['data']) => void;
 
-export interface WsSocket {
+export interface WsClient {
 	send: WsSendHandler;
 	player: Player;
+	socket: WebSocket;
+	waitForMessage: <T extends WsMessageType>(type: T) => Promise<WsMessage<T>['data']>;
+	onClose: (callback: () => void) => void;
 }
