@@ -10,7 +10,10 @@ export enum WsMessageType {
 	RoomsList = 'roomsList',
 	JoinRoom = 'joinRoom',
 	RoomData = 'roomData',
-	Sit = 'sit'
+	Sit = 'sit',
+	Kick = 'kick',
+	Ready = 'ready',
+	Unready = 'unready'
 }
 
 export type GetWsMessage<Type extends WsMessageType, Data> = {
@@ -38,6 +41,10 @@ export type WsJoinRoom = GetWsMessage<WsMessageType.JoinRoom, string>;
 export type WsRoomData = GetWsMessage<WsMessageType.RoomData, RoomInfo>;
 
 export type WsSit = GetWsMessage<WsMessageType.Sit, number>;
+export type WsKick = GetWsMessage<WsMessageType.Kick, number>;
+
+export type WsReady = GetWsMessage<WsMessageType.Ready, undefined>;
+export type WsUnready = GetWsMessage<WsMessageType.Unready, undefined>;
 
 export type WsAnyMessage =
 	| WsMove
@@ -48,7 +55,10 @@ export type WsAnyMessage =
 	| WsRoomsList
 	| WsJoinRoom
 	| WsRoomData
-	| WsSit;
+	| WsSit
+	| WsKick
+	| WsReady
+	| WsUnready;
 
 export type WsMessage<Type extends WsMessageType | null> = Type extends WsMessageType.Move
 	? WsMove
@@ -68,4 +78,10 @@ export type WsMessage<Type extends WsMessageType | null> = Type extends WsMessag
 	? WsRoomData
 	: Type extends WsMessageType.Sit
 	? WsSit
+	: Type extends WsMessageType.Kick
+	? WsKick
+	: Type extends WsMessageType.Ready
+	? WsReady
+	: Type extends WsMessageType.Unready
+	? WsUnready
 	: GetWsMessage<never, undefined>;

@@ -14,23 +14,28 @@
 		);
 	};
 
-	const handleSit = (index: number) => () => {
-		client?.sit(index);
-	};
-
 	let players: (PlayerWithRating | null)[];
 	$: players = room ? getPlayers(room) : [];
-
-	let alreadySitting: boolean;
-	$: alreadySitting = players.some((player) => player?.nickname === $playerStore?.nickname);
 </script>
 
 {#if room}
 	<div class="container">
 		<div>
-			<PlayerInfo {alreadySitting} onSit={handleSit(0)} player={players[0]} />
+			<PlayerInfo
+				me={$playerStore?.nickname ?? ''}
+				leader={room.leader}
+				slot={0}
+				{players}
+				{client}
+			/>
 			<slot />
-			<PlayerInfo {alreadySitting} onSit={handleSit(1)} player={players[1]} />
+			<PlayerInfo
+				me={$playerStore?.nickname ?? ''}
+				leader={room.leader}
+				slot={1}
+				{players}
+				{client}
+			/>
 		</div>
 	</div>
 {:else}

@@ -8,6 +8,7 @@ interface RoomsWsConnect {
 	unsubscribeList: () => void;
 	createRoom: () => Promise<string>;
 	sit: (index: number) => Promise<void>;
+	kick: (index: number) => Promise<void>;
 	roomsList: Readable<RoomInfo[] | null>;
 	room: Readable<RoomInfo | null>;
 }
@@ -59,6 +60,12 @@ export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) =
 
 			sit: async (index: number) => {
 				send(WsMessageType.Sit, index);
+
+				await waitForMessage(WsMessageType.RoomData);
+			},
+
+			kick: async (index: number) => {
+				send(WsMessageType.Kick, index);
 
 				await waitForMessage(WsMessageType.RoomData);
 			}
