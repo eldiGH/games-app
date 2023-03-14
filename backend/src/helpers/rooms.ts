@@ -4,7 +4,9 @@ import type { WsClient } from '../types';
 export interface UpdateRequest {
 	updateThisRoom: boolean;
 	updateRoomsList: boolean;
-	update: () => void;
+	roomUpdater: () => void;
+	update: (withList?: boolean) => void;
+	childRequests: UpdateRequest[];
 }
 
 export interface Room {
@@ -22,7 +24,7 @@ export interface Room {
 }
 
 export interface RoomManager {
-	addRoom: (client: WsClient) => void;
+	addRoom: (client: WsClient) => string;
 	joinRoom: (client: WsClient, id: string) => void;
 	leaveRoom: (client: WsClient) => void;
 	sit: (client: WsClient, index: number) => void;
@@ -75,7 +77,7 @@ export const roomsManagerFactory = (playersCount: number) => {
 		const players: (WsClient | null)[] = [client];
 		const playersInRoom = [client];
 		const leader = client;
-		const status = playersCount;
+		const status = RoomStatus.Waiting;
 		const readyState: boolean[] = [];
 
 		for (let i = 1; i < playersCount; i++) {
@@ -83,12 +85,32 @@ export const roomsManagerFactory = (playersCount: number) => {
 		}
 
 		const updateRequestFactory = (): UpdateRequest => {
-			const update = () => {
-				updateRequest.updateRoomsList && sendCurrentRoomsList();
-				updateRequest.updateThisRoom && sendRoomData();
+			const update = (withList = true) => {
+				let updatedRoomsList = false;
+
+				const recursiveUpdate = (request: UpdateRequest) => {
+					if (!updatedRoomsList && request.updateRoomsList && withList) {
+						updatedRoomsList = true;
+						sendCurrentRoomsList();
+					}
+
+					request.updateThisRoom && request.roomUpdater();
+
+					for (const child of request.childRequests) {
+						recursiveUpdate(child);
+					}
+				};
+
+				recursiveUpdate(updateRequest);
 			};
 
-			const updateRequest = { updateRoomsList: false, updateThisRoom: false, update };
+			const updateRequest: UpdateRequest = {
+				updateRoomsList: false,
+				updateThisRoom: false,
+				roomUpdater: () => sendRoomData(),
+				update,
+				childRequests: []
+			};
 
 			return updateRequest;
 		};
@@ -97,7 +119,7 @@ export const roomsManagerFactory = (playersCount: number) => {
 			const updateRequest = updateRequestFactory();
 
 			const playerInRoomIndex = thisRoom.playersInRoom.indexOf(client);
-			if (playerInRoomIndex === -1) return;
+			if (playerInRoomIndex === -1) return updateRequest;
 
 			thisRoom.playersInRoom.splice(playerInRoomIndex, 1);
 			updateRequest.updateThisRoom = true;
@@ -105,6 +127,7 @@ export const roomsManagerFactory = (playersCount: number) => {
 			const playerIndex = thisRoom.players.indexOf(client);
 			if (playerIndex !== -1) {
 				thisRoom.players.splice(playerIndex, 1, null);
+				thisRoom.status = RoomStatus.Waiting;
 				updateRequest.updateRoomsList = true;
 				updateRequest.updateThisRoom = true;
 			}
@@ -112,67 +135,71 @@ export const roomsManagerFactory = (playersCount: number) => {
 			const isRoomEmpty = thisRoom.playersInRoom.length === 0;
 			if (!isRoomEmpty) {
 				updateRequest.updateThisRoom = true;
-				return;
+				return updateRequest;
 			}
 
 			const index = rooms.indexOf(thisRoom);
-			if (index === -1) return;
+			if (index === -1) return updateRequest;
 
 			rooms.splice(index, 1);
 			updateRequest.updateRoomsList = true;
 			updateRequest.updateThisRoom = false;
+
+			return updateRequest;
 		};
 
 		const join = (client: WsClient) => {
-			const { update, updateRoomsList, updateThisRoom } = updateWatcher();
+			const updateRequest = updateRequestFactory();
 
 			const currentRoom = getRoomByClient(client);
-			let isRoomUpdated = false;
 
 			if (currentRoom && currentRoom !== thisRoom) {
-				currentRoom.leave(client);
-				isRoomUpdated = true;
+				updateRequest.childRequests.push(currentRoom.leave(client));
 			} else if (thisRoom.playersInRoom.includes(client)) {
-				update();
-				return;
+				return updateRequest;
 			}
 
 			thisRoom.playersInRoom.push(client);
-			isRoomUpdated = true;
+			updateRequest.updateThisRoom = true;
 
-			update();
-			return;
+			return updateRequest;
 		};
 
-		const sit = (client: WsClient, index: number): boolean => {
-			if (index < 0 || index > playersCount) return false;
+		const sit = (client: WsClient, index: number) => {
+			const updateRequest = updateRequestFactory();
+
+			if (index < 0 || index > playersCount) return updateRequest;
 
 			const isSpotBusy = thisRoom.players[index] !== null;
-			if (isSpotBusy) return false;
+			if (isSpotBusy) return updateRequest;
 
 			const currentSpot = thisRoom.players.indexOf(client);
 			if (currentSpot !== -1) thisRoom.players[currentSpot] = null;
 
 			thisRoom.players[index] = client;
+			updateRequest.updateThisRoom = true;
+			updateRequest.updateRoomsList = true;
 
 			const isFull = thisRoom.players.every((player) => player !== null);
 			if (isFull) thisRoom.status = RoomStatus.Full;
 
-			return true;
+			return updateRequest;
 		};
 
-		const kick = (client: WsClient, index: number): boolean => {
-			if (index < 0 || index > playersCount) return false;
+		const kick = (client: WsClient, index: number) => {
+			const updateRequest = updateRequestFactory();
 
-			const room = getRoomByClient(client);
-			if (!room || room.players[index] === null) return false;
+			if (index < 0 || index > playersCount) return updateRequest;
 
-			if (!(room.leader === client || room.players[index] === client)) return false;
+			if (!(thisRoom.leader === client || thisRoom.players[index] === client)) return updateRequest;
 
-			room.players[index] = null;
-			room.status = RoomStatus.Waiting;
+			thisRoom.players[index] = null;
+			thisRoom.status = RoomStatus.Waiting;
 
-			return true;
+			updateRequest.updateRoomsList = true;
+			updateRequest.updateThisRoom = true;
+
+			return updateRequest;
 		};
 
 		const sendRoomData = () => {
@@ -224,8 +251,8 @@ export const roomsManagerFactory = (playersCount: number) => {
 		const currentRoom = getRoomByClient(client);
 
 		if (currentRoom) {
-			const wasUpdated = currentRoom.leave(client);
-			if (wasUpdated) currentRoom.sendRoomData();
+			const { update } = currentRoom.leave(client);
+			update(false);
 		}
 
 		const currentRoomIds = getCurrentRoomsIds();
@@ -237,14 +264,9 @@ export const roomsManagerFactory = (playersCount: number) => {
 
 		const newRoom = roomFactory(newId, client, playersCount);
 		rooms.push(newRoom);
-	};
 
-	const removeRoom = (room: Room) => {
-		const roomIndex = rooms.indexOf(room);
-
-		if (roomIndex === -1) return;
-
-		rooms.splice(roomIndex, 1);
+		sendCurrentRoomsList();
+		return newId;
 	};
 
 	const joinRoom = (client: WsClient, id: string) => {
@@ -263,29 +285,25 @@ export const roomsManagerFactory = (playersCount: number) => {
 
 		if (!room) return;
 
-		const wasRoomUpdated = room.leave(client);
+		const { update } = room.leave(client);
+
+		update();
 	};
 
 	const sit = (client: WsClient, index: number) => {
 		const room = getRoomByClient(client);
 
-		const isRoomUpdated = room?.sit(client, index);
+		const updateRequest = room?.sit(client, index);
 
-		if (isRoomUpdated) {
-			sendCurrentRoomsList();
-			room?.sendRoomData();
-		}
+		updateRequest?.update();
 	};
 
 	const kick = (client: WsClient, index: number) => {
 		const room = getRoomByClient(client);
 
-		const isRoomUpdated = room?.kick(client, index);
+		const updateRequest = room?.kick(client, index);
 
-		if (isRoomUpdated) {
-			sendCurrentRoomsList();
-			room?.sendRoomData();
-		}
+		updateRequest?.update();
 	};
 
 	const subscribeRoomList = (client: WsClient) => {

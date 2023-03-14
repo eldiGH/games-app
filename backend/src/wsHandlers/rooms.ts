@@ -17,7 +17,9 @@ export const handleRooms = (message: WsMessageHandler, playersCount = 2): RoomMa
 	});
 
 	message(WsMessageType.CreateRoom, (client) => {
-		roomsManager.addRoom(client);
+		const newId = roomsManager.addRoom(client);
+
+		client.send(WsMessageType.RoomCreated, newId);
 
 		client.onClose(() => {
 			roomsManager.leaveRoom(client);
