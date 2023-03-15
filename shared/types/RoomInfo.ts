@@ -6,6 +6,6 @@ export interface RoomInfo {
 	time: number;
 	status: RoomStatus;
 	leader: string;
-	players: (number | null)[];
+	players: ({ index: number; isReady: boolean } | null)[];
 	playersInRoom: PlayerWithRating[];
 }

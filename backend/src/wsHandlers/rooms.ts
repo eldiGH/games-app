@@ -1,48 +1,53 @@
-import { WsMessageType } from '@shared/types';
 import { roomsManagerFactory, type RoomManager, type WsMessageHandler } from '../helpers';
 
 export const handleRooms = (message: WsMessageHandler, playersCount = 2): RoomManager => {
-	const roomsManager = roomsManagerFactory(playersCount);
+  const roomsManager = roomsManagerFactory(playersCount);
 
-	message(WsMessageType.SubscribeRoomList, (client) => {
-		roomsManager.subscribeRoomList(client);
+  message('subscribeRoomsList', (client) => {
+    roomsManager.subscribeRoomList(client);
 
-		client.onClose(() => {
-			roomsManager.unsubscribeRoomList(client);
-		});
-	});
+    client.onClose(() => {
+      roomsManager.unsubscribeRoomList(client);
+    });
+  });
 
-	message(WsMessageType.UnsubscribeRoomList, (client) => {
-		roomsManager.unsubscribeRoomList(client);
-	});
+  message('unsubscribeRoomList', (client) => {
+    roomsManager.unsubscribeRoomList(client);
+  });
 
-	message(WsMessageType.CreateRoom, (client) => {
-		const newId = roomsManager.addRoom(client);
+  message('createRoom', (client) => {
+    const newId = roomsManager.addRoom(client);
 
-		client.send(WsMessageType.RoomCreated, newId);
+    client.send('roomCreated', newId);
 
-		client.onClose(() => {
-			roomsManager.leaveRoom(client);
-		});
-	});
+    client.onClose(() => {
+      roomsManager.leaveRoom(client);
+    });
+  });
 
-	message(WsMessageType.JoinRoom, (client, id) => {
-		roomsManager.joinRoom(client, id);
+  message('joinRoom', (client, id) => {
+    roomsManager.joinRoom(client, id);
 
-		client.onClose(() => {
-			roomsManager.leaveRoom(client);
-		});
-	});
+    client.onClose(() => {
+      roomsManager.leaveRoom(client);
+    });
+  });
 
-	message(WsMessageType.Sit, (client, index) => {
-		roomsManager.sit(client, index);
-	});
+  message('sit', (client, index) => {
+    roomsManager.sit(client, index);
+  });
 
-	message(WsMessageType.Kick, (client, index) => {
-		roomsManager.kick(client, index);
-	});
+  message('kick', (client, index) => {
+    roomsManager.kick(client, index);
+  });
 
-	// message(WsMessageType.Ready, (client) => {});
+  message('ready', (client) => {
+    roomsManager.ready(client);
+  });
 
-	return roomsManager;
+  message('unready', (client) => {
+    roomsManager.unready(client);
+  });
+
+  return roomsManager;
 };

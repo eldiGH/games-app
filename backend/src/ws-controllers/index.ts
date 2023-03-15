@@ -1,1 +1,1 @@
-export * from './CheckersController';
+export * from './CheckersWsController';

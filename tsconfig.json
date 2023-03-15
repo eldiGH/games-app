@@ -1,28 +1,30 @@
 {
-	"compilerOptions": {
-		"allowJs": false,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": false,
-		"sourceMap": true,
-		"strict": true,
-		"baseUrl": ".",
-		"paths": {
-			"@shared/types": ["shared/types/index.ts"],
-			"@shared/classes": ["shared/classes/index.ts"],
-			"@shared/schemas": ["shared/schemas/index.ts"],
-			"@shared/locales/*": ["shared/locales/*"]
-		},
-		"importsNotUsedAsValues": "error",
-		"isolatedModules": true,
-		"preserveValueImports": true,
-		"lib": ["esnext"],
-		"moduleResolution": "node",
-		"module": "ESNext",
-		"target": "ESNext",
-		"noEmit": true,
-		"plugins": [{ "transform": "typescript-transform-paths" }]
-	},
-	"exclude": ["node_modules/**", "frontend/**"]
+  "compilerOptions": {
+    "allowJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": false,
+    "sourceMap": true,
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/types": ["shared/types/index.ts"],
+      "@shared/classes": ["shared/classes/index.ts"],
+      "@shared/schemas": ["shared/schemas/index.ts"],
+      "@shared/gameControllers": ["shared/gameControllers/index.ts"],
+      "@shared/helpers": ["shared/helpers/index.ts"],
+      "@shared/locales/*": ["shared/locales/*"]
+    },
+    "importsNotUsedAsValues": "error",
+    "isolatedModules": true,
+    "preserveValueImports": true,
+    "lib": ["esnext"],
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ESNext",
+    "noEmit": true,
+    "plugins": [{ "transform": "typescript-transform-paths" }]
+  },
+  "exclude": ["node_modules/**", "frontend/**"]
 }

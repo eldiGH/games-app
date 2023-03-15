@@ -7,3 +7,4 @@ export * from './WsMessage';
 export * from './ApiError';
 export * from './RoomInfo';
 export * from './PlayerWithRating';
+export * from './GameController';

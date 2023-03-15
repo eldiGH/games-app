@@ -25,7 +25,7 @@ model Player {
   @@map("players")
 }
 
-enum Game {
+enum GameType {
   SNAKE
   CHESS
   CHECKERS
@@ -34,7 +34,7 @@ enum Game {
 model Ranking {
   id       Int    @id @default(autoincrement())
   value    Int
-  game     Game
+  game     GameType
   playerId Int
   player   Player @relation(fields: [playerId], references: [id])
 
@@ -50,7 +50,7 @@ model MatchHistory {
   loser              Player   @relation(name: "Loser", fields: [loserId], references: [id])
   loserRatingBefore  Int
   transferedPoints   Int
-  game               Game
+  game               GameType
   date               DateTime @default(now())
 
   @@map("match_histories")

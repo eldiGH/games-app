@@ -1,7 +1,7 @@
-import { StoneColor, type Stone, type StoneMove } from '@shared/types';
-import { Point } from './utils';
+import { Point } from '@shared/classes';
+import { StoneColor, type GameControllerFactory, type Stone, type StoneMove } from '@shared/types';
 
-export const getInitialCheckersGame = (): CheckersGame => {
+export const getInitialStones = (): Stone[] => {
   const stones: Stone[] = [];
 
   for (let y = 0; y <= 2; y++) {
@@ -26,33 +26,23 @@ export const getInitialCheckersGame = (): CheckersGame => {
     }
   }
 
-  return new CheckersGame(
-    stones.sort((a, b) => Point.comparator(a.position, b.position)),
-    StoneColor.WHITE
-  );
+  return stones;
 };
 
-export class CheckersGame {
-  stones: Stone[];
-  turn: StoneColor;
+export const checkersControllerFactory: GameControllerFactory = () => {
+  let stones: Stone[] = getInitialStones();
+  let turn: StoneColor = StoneColor.WHITE;
 
-  constructor(stones: Stone[], turn: StoneColor) {
-    this.stones = stones;
-    this.turn = turn;
+  const getStone = (position: Point) => {
+    return stones.find((stone) => stone.position.eq(position));
+  };
 
-    this.#calculateAllPossibleMoves();
-  }
+  const changeTurn = () => {
+    turn = turn === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
+  };
 
-  getStone(position: Point) {
-    return this.stones.find((stone) => stone.position.eq(position));
-  }
-
-  #changeTurn() {
-    this.turn = this.turn === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
-  }
-
-  #availableMoves(stone: Stone): StoneMove[] {
-    if (stone.color !== this.turn) return [];
+  const availableMoves = (stone: Stone): StoneMove[] => {
+    if (stone.color !== turn) return [];
 
     const availableMoves: StoneMove[] = [];
     const signMultiplier = stone.color === StoneColor.WHITE ? 1 : -1;
@@ -62,13 +52,13 @@ export class CheckersGame {
       for (let x = -1; x <= 1; x += 2) {
         for (let y = -1; y <= 1; y += 2) {
           const diagonalPoint = stone.position.add(x, y);
-          const diagonalStone = this.getStone(diagonalPoint);
+          const diagonalStone = getStone(diagonalPoint);
 
           if (!diagonalStone && y * signMultiplier > 0)
             availableMoves.push({ position: diagonalPoint });
           else if (diagonalStone?.color === oppositeColor) {
             const diagonalPointBehind = diagonalPoint.add(x, y);
-            const diagonalStoneBehind = this.getStone(diagonalPointBehind);
+            const diagonalStoneBehind = getStone(diagonalPointBehind);
 
             if (!diagonalStoneBehind)
               availableMoves.push({
@@ -84,13 +74,13 @@ export class CheckersGame {
           let point = stone.position.add(x, y);
 
           while (point.within(0, 0, 7, 7)) {
-            const stone = this.getStone(point);
+            const stone = getStone(point);
 
             if (!stone) availableMoves.push({ position: point });
             else if (stone.color === oppositeColor) {
               point = point.add(x, y);
               while (point.within(0, 0, 7, 7)) {
-                const stoneBehind = this.getStone(point);
+                const stoneBehind = getStone(point);
 
                 if (stoneBehind) break;
                 availableMoves.push({ position: point, attackedStone: stone });
@@ -110,37 +100,41 @@ export class CheckersGame {
       .sort((a, b) => Point.comparator(a.position, b.position));
 
     return legalMoves;
-  }
+  };
 
-  #calculateAllPossibleMoves() {
-    for (const stone of this.stones) {
-      stone.possibleMoves = this.#availableMoves(stone);
+  const calculateAllPossibleMoves = () => {
+    for (const stone of stones) {
+      stone.possibleMoves = availableMoves(stone);
     }
 
-    const hasAnyAttack = this.stones.some(({ possibleMoves }) =>
+    const hasAnyAttack = stones.some(({ possibleMoves }) =>
       possibleMoves.some((move) => !!move.attackedStone)
     );
 
     if (!hasAnyAttack) return;
 
-    for (const stone of this.stones) {
+    for (const stone of stones) {
       stone.possibleMoves = stone.possibleMoves.filter(({ attackedStone }) => !!attackedStone);
     }
-  }
+  };
 
-  move(stone: Stone, move: StoneMove): boolean {
-    if (!stone.possibleMoves.includes(move)) return false;
+  const move = (from: Point, to: Point): boolean => {
+    const stone = getStone(from);
+    if (!stone) return false;
 
-    stone.position = move.position;
-    if (move.attackedStone) {
-      this.stones = this.stones.filter((stone) => stone !== move.attackedStone);
+    const stoneMove = stone.possibleMoves.find(({ position }) => position.eq(to));
+    if (!stoneMove) return false;
 
-      this.#calculateAllPossibleMoves();
+    stone.position = stoneMove.position;
+    if (stoneMove.attackedStone) {
+      stones = stones.filter((stone) => stone !== stoneMove.attackedStone);
+
+      calculateAllPossibleMoves();
       const hasAnotherAttack = stone.possibleMoves.some(({ attackedStone }) => !!attackedStone);
 
       if (!hasAnotherAttack) {
-        this.#changeTurn();
-        this.#calculateAllPossibleMoves();
+        changeTurn();
+        calculateAllPossibleMoves();
 
         if (
           ((stone.color === StoneColor.WHITE && stone.position.y === 7) ||
@@ -148,11 +142,11 @@ export class CheckersGame {
           !stone.isDame
         ) {
           stone.isDame = true;
-          this.#calculateAllPossibleMoves();
+          calculateAllPossibleMoves();
         }
       }
     } else {
-      this.#changeTurn();
+      changeTurn();
 
       if (
         ((stone.color === StoneColor.WHITE && stone.position.y === 7) ||
@@ -160,14 +154,18 @@ export class CheckersGame {
         !stone.isDame
       ) {
         stone.isDame = true;
-        this.#calculateAllPossibleMoves();
+        calculateAllPossibleMoves();
       }
 
-      this.#calculateAllPossibleMoves();
+      calculateAllPossibleMoves();
     }
 
-    this.stones = this.stones.sort((a, b) => Point.comparator(a.position, b.position));
+    stones = stones.sort((a, b) => Point.comparator(a.position, b.position));
 
     return true;
-  }
-}
+  };
+
+  calculateAllPossibleMoves();
+
+  return { move };
+};
