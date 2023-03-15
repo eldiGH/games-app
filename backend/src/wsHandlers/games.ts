@@ -1,6 +1,6 @@
 import type { GameType } from '@prisma/client';
 import type { GameController, GameControllerFactory } from '@shared/types';
-import type { Room, RoomManager, WsMessageHandler } from '../helpers';
+import { sendToAllClients, type Room, type RoomManager, type WsMessageHandler } from '../helpers';
 import type { WsClient } from '../types';
 
 interface Game {
@@ -26,6 +26,8 @@ export const handleGames = (
     const game = gameFactory(room);
 
     games.push(game);
+
+    sendToAllClients(room.playersInRoom, 'gameStarted', 0);
   });
 
   const move = (client: WsClient) => {

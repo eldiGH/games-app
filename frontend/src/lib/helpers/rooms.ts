@@ -1,83 +1,83 @@
 import type { WsClientFactory } from '$lib/types';
-import { WsMessageType, type RoomInfo } from '@shared/types';
+import type { RoomInfo } from '@shared/types';
 import { writable, type Readable } from 'svelte/store';
 
 interface RoomsWsConnect {
-	join: (id: string) => Promise<void>;
-	subscribeList: () => void;
-	unsubscribeList: () => void;
-	createRoom: () => Promise<string>;
-	sit: (index: number) => Promise<void>;
-	kick: (index: number) => Promise<void>;
-	roomsList: Readable<RoomInfo[] | null>;
-	room: Readable<RoomInfo | null>;
+  join: (id: string) => Promise<void>;
+  subscribeList: () => void;
+  unsubscribeList: () => void;
+  createRoom: () => Promise<string>;
+  sit: (index: number) => Promise<void>;
+  kick: (index: number) => Promise<void>;
+  roomsList: Readable<RoomInfo[] | null>;
+  room: Readable<RoomInfo | null>;
 }
 
 export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) => {
-	const connect = async () => {
-		const client = await wsClient();
-		const { send, addMessageListener, removeMessageListener, waitForMessage } = client;
+  const connect = async () => {
+    const client = await wsClient();
+    const { send, addMessageListener, removeMessageListener, waitForMessage } = client;
 
-		const roomsList = writable<RoomInfo[] | null>(null);
-		const room = writable<RoomInfo | null>(null);
+    const roomsList = writable<RoomInfo[] | null>(null);
+    const room = writable<RoomInfo | null>(null);
 
-		const refreshRoomsListCallback = (data: RoomInfo[]) => {
-			roomsList.set(data);
-		};
+    const refreshRoomsListCallback = (data: RoomInfo[]) => {
+      roomsList.set(data);
+    };
 
-		const refreshRoomCallback = (data: RoomInfo) => {
-			room.set(data);
-		};
+    const refreshRoomCallback = (data: RoomInfo) => {
+      room.set(data);
+    };
 
-		const additionalMethods = {
-			join: async (id: string) => {
-				send(WsMessageType.JoinRoom, id);
+    const additionalMethods = {
+      join: async (id: string) => {
+        send('joinRoom', id);
 
-				const roomData = await waitForMessage(WsMessageType.RoomData);
-				room.set(roomData);
+        const roomData = await waitForMessage('roomData');
+        room.set(roomData);
 
-				addMessageListener(WsMessageType.RoomData, refreshRoomCallback);
-			},
+        addMessageListener('roomData', refreshRoomCallback);
+      },
 
-			subscribeList: () => {
-				send(WsMessageType.SubscribeRoomList, undefined);
+      subscribeList: () => {
+        send('subscribeRoomsList', undefined);
 
-				addMessageListener(WsMessageType.RoomsList, refreshRoomsListCallback);
-			},
+        addMessageListener('roomsList', refreshRoomsListCallback);
+      },
 
-			unsubscribeList: () => {
-				send(WsMessageType.UnsubscribeRoomList, undefined);
+      unsubscribeList: () => {
+        send('unsubscribeRoomList', undefined);
 
-				removeMessageListener(refreshRoomsListCallback);
-				roomsList.set(null);
-			},
+        removeMessageListener(refreshRoomsListCallback);
+        roomsList.set(null);
+      },
 
-			createRoom: async () => {
-				send(WsMessageType.CreateRoom, undefined);
+      createRoom: async () => {
+        send('createRoom', undefined);
 
-				return await waitForMessage(WsMessageType.RoomCreated);
-			},
+        return await waitForMessage('roomCreated');
+      },
 
-			sit: async (index: number) => {
-				send(WsMessageType.Sit, index);
+      sit: async (index: number) => {
+        send('sit', index);
 
-				await waitForMessage(WsMessageType.RoomData);
-			},
+        await waitForMessage('roomCreated');
+      },
 
-			kick: async (index: number) => {
-				send(WsMessageType.Kick, index);
+      kick: async (index: number) => {
+        send('kick', index);
 
-				await waitForMessage(WsMessageType.RoomData);
-			}
-		};
+        await waitForMessage('roomData');
+      }
+    };
 
-		return {
-			...client,
-			...additionalMethods,
-			roomsList: { subscribe: roomsList.subscribe },
-			room: { subscribe: room.subscribe }
-		};
-	};
+    return {
+      ...client,
+      ...additionalMethods,
+      roomsList: { subscribe: roomsList.subscribe },
+      room: { subscribe: room.subscribe }
+    };
+  };
 
-	return connect;
+  return connect;
 };

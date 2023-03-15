@@ -1,6 +1,8 @@
 import type {
   AnyWsMessagesToServer,
+  WsMessagesToClientType,
   WsMessagesToServerType,
+  WsMessageToClient,
   WsMessageToServer
 } from '@shared/types';
 import { WebSocketServer, WebSocket, type RawData } from 'ws';
@@ -79,6 +81,16 @@ export const wsController = (path: string): WsController => {
   });
 
   return { wss, path, hooks };
+};
+
+export const sendToAllClients = <T extends WsMessagesToClientType>(
+  clients: WsClient[],
+  type: T,
+  data: WsMessageToClient<T>['data']
+) => {
+  for (const client of clients) {
+    client.send(type, data);
+  }
 };
 
 export const messageFactory =

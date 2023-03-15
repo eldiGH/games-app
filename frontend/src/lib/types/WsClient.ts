@@ -1,20 +1,30 @@
-import type { WsMessage, WsMessageType } from '@shared/types';
+import type {
+  WsMessagesToClientType,
+  WsMessagesToServerType,
+  WsMessageToClient,
+  WsMessageToServer
+} from '@shared/types';
 
-export type WsConnectedBase<S> = {
-	socket: WebSocket;
-	send: <T extends WsMessageType>(type: T, data: WsMessage<T>['data']) => void;
-	waitForMessage: <T extends WsMessageType>(
-		type: T,
-		waitTime?: number
-	) => Promise<WsMessage<T>['data']>;
-	addMessageListener: <T extends WsMessageType>(type: T, callback: WsMessageListener<T>) => void;
-	removeMessageListener: (callback: WsMessageListener<never>) => void;
-} & S;
+export type WsConnectedBase = {
+  socket: WebSocket;
+  send: <T extends WsMessagesToServerType>(type: T, data: WsMessageToServer<T>['data']) => void;
+  waitForMessage: <T extends WsMessagesToClientType>(
+    type: T,
+    waitTime?: number
+  ) => Promise<WsMessageToClient<T>['data']>;
+  addMessageListener: <T extends WsMessagesToClientType>(
+    type: T,
+    callback: WsMessageListenerHandler<T>
+  ) => void;
+  removeMessageListener: (callback: WsMessageListenerHandler<never>) => void;
+};
 
-export type WsClient<T> = () => Promise<WsConnectedBase<T>>;
+export type WsClient<T> = () => Promise<T & WsConnectedBase>;
 
 export type WsClientFactory<T> = <C>(wsClient: WsClient<C>) => WsClient<T & C>;
 
-export type WsControllerFactory = (controller: string) => WsClient<unknown>;
+export type WsControllerFactory = (controller: string) => WsClient<WsConnectedBase>;
 
-export type WsMessageListener<T extends WsMessageType> = (data: WsMessage<T>['data']) => void;
+export type WsMessageListenerHandler<T extends WsMessagesToClientType> = (
+  data: WsMessageToClient<T>['data']
+) => void;

@@ -1,29 +1,29 @@
 import { roomsExtendedClient } from '$lib/helpers';
 import type { WsClientFactory } from '$lib/types';
-import { wsClientFactory } from './wsClient';
+import { wsControllerFactory } from './wsClient';
 
 export interface WsCheckersClientMethods {
-	move: () => void;
+  move: () => void;
 }
 
-roomsExtendedClient(wsClientFactory('checkers'));
+roomsExtendedClient(wsControllerFactory('checkers'));
 
 export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> = (wsClient) => {
-	const connect = async () => {
-		const client = await wsClient();
+  const connect = async () => {
+    const client = await wsClient();
 
-		const move = () => {
-			///
-		};
+    const move = () => {
+      ///
+    };
 
-		return { ...client, move };
-	};
+    return { ...client, move };
+  };
 
-	return connect;
+  return connect;
 };
 
 export const wsCheckersClient = wsCheckersClientFactory(
-	roomsExtendedClient(wsClientFactory('checkers'))
+  roomsExtendedClient(wsControllerFactory('checkers'))
 );
 
 export type WsCheckersClient = Awaited<ReturnType<typeof wsCheckersClient>>;

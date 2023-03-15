@@ -1,16 +1,16 @@
 import type { WsConnectedBase } from '$lib/types';
 import { writable } from 'svelte/store';
 
-export const getWsClientStore = <T extends WsConnectedBase<unknown>>() => {
-	const { subscribe, set } = writable<T | null>(null);
+export const getWsClientStore = <T extends WsConnectedBase>() => {
+  const { subscribe, set } = writable<T | null>(null);
 
-	const setClient = (client: T) => {
-		set(client);
-	};
+  const setClient = (client: T) => {
+    set(client);
+  };
 
-	const clearClient = () => {
-		set(null);
-	};
+  const clearClient = () => {
+    set(null);
+  };
 
-	return { subscribe, setClient, clearClient };
+  return { subscribe, setClient, clearClient };
 };
