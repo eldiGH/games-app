@@ -5,6 +5,7 @@ export * from './JwtPayload';
 export * from './PlayerWithFriends';
 export * from './WsMessage';
 export * from './ApiError';
-export * from './RoomInfo';
+export * from './WsRoom';
 export * from './PlayerWithRating';
 export * from './GameController';
+export * from './MoveData';

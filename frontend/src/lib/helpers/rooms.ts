@@ -1,5 +1,5 @@
-import type { WsClientFactory } from '$lib/types';
-import type { RoomInfo } from '@shared/types';
+import type { Room, WsClientFactory } from '$lib/types';
+import type { WsRoom } from '@shared/types';
 import { writable, type Readable } from 'svelte/store';
 
 interface RoomsWsConnect {
@@ -9,24 +9,36 @@ interface RoomsWsConnect {
   createRoom: () => Promise<string>;
   sit: (index: number) => Promise<void>;
   kick: (index: number) => Promise<void>;
-  roomsList: Readable<RoomInfo[] | null>;
-  room: Readable<RoomInfo | null>;
+  ready: () => Promise<void>;
+  unready: () => Promise<void>;
+  roomsList: Readable<Room[] | null>;
+  room: Readable<Room | null>;
 }
+
+const roomMapper = (room: WsRoom): Room => {
+  const { players, ...roomData } = room;
+
+  const parsedPlayers = players.map((player) =>
+    player ? { ...roomData.playersInRoom[player.index], isReady: player.isReady } : null
+  );
+
+  return { ...roomData, players: parsedPlayers };
+};
 
 export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) => {
   const connect = async () => {
     const client = await wsClient();
     const { send, addMessageListener, removeMessageListener, waitForMessage } = client;
 
-    const roomsList = writable<RoomInfo[] | null>(null);
-    const room = writable<RoomInfo | null>(null);
+    const roomsList = writable<Room[] | null>(null);
+    const room = writable<Room | null>(null);
 
-    const refreshRoomsListCallback = (data: RoomInfo[]) => {
-      roomsList.set(data);
+    const refreshRoomsListCallback = (data: WsRoom[]) => {
+      roomsList.set(data.map(roomMapper));
     };
 
-    const refreshRoomCallback = (data: RoomInfo) => {
-      room.set(data);
+    const refreshRoomCallback = (data: WsRoom) => {
+      room.set(roomMapper(data));
     };
 
     const additionalMethods = {
@@ -34,7 +46,7 @@ export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) =
         send('joinRoom', id);
 
         const roomData = await waitForMessage('roomData');
-        room.set(roomData);
+        room.set(roomMapper(roomData));
 
         addMessageListener('roomData', refreshRoomCallback);
       },
@@ -61,11 +73,23 @@ export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) =
       sit: async (index: number) => {
         send('sit', index);
 
-        await waitForMessage('roomCreated');
+        await waitForMessage('roomData');
       },
 
       kick: async (index: number) => {
         send('kick', index);
+
+        await waitForMessage('roomData');
+      },
+
+      ready: async () => {
+        send('ready', undefined);
+
+        await waitForMessage('roomData');
+      },
+
+      unready: async () => {
+        send('unready', undefined);
 
         await waitForMessage('roomData');
       }

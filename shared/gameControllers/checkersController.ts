@@ -1,5 +1,18 @@
 import { Point } from '@shared/classes';
-import { StoneColor, type GameControllerFactory, type Stone, type StoneMove } from '@shared/types';
+import {
+  StoneColor,
+  type GameController,
+  type GameControllerFactory,
+  type MoveData,
+  type Stone,
+  type StoneMove
+} from '@shared/types';
+
+export interface CheckersGameController extends GameController {
+  getStone: (position: Point) => Stone | undefined;
+  readonly stones: Stone[];
+  readonly turn: StoneColor;
+}
 
 export const getInitialStones = (): Stone[] => {
   const stones: Stone[] = [];
@@ -29,20 +42,20 @@ export const getInitialStones = (): Stone[] => {
   return stones;
 };
 
-export const checkersControllerFactory: GameControllerFactory = () => {
+export const checkersControllerFactory: GameControllerFactory<CheckersGameController> = () => {
   let stones: Stone[] = getInitialStones();
-  let turn: StoneColor = StoneColor.WHITE;
+  const gameState = { turn: StoneColor.WHITE };
 
   const getStone = (position: Point) => {
     return stones.find((stone) => stone.position.eq(position));
   };
 
   const changeTurn = () => {
-    turn = turn === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
+    gameState.turn = gameState.turn === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
   };
 
   const availableMoves = (stone: Stone): StoneMove[] => {
-    if (stone.color !== turn) return [];
+    if (stone.color !== gameState.turn) return [];
 
     const availableMoves: StoneMove[] = [];
     const signMultiplier = stone.color === StoneColor.WHITE ? 1 : -1;
@@ -118,7 +131,10 @@ export const checkersControllerFactory: GameControllerFactory = () => {
     }
   };
 
-  const move = (from: Point, to: Point): boolean => {
+  const move = (moveData: MoveData): boolean => {
+    const from = new Point(moveData.from);
+    const to = new Point(moveData.to);
+
     const stone = getStone(from);
     if (!stone) return false;
 
@@ -167,5 +183,15 @@ export const checkersControllerFactory: GameControllerFactory = () => {
 
   calculateAllPossibleMoves();
 
-  return { move };
+  return {
+    move,
+    getStone,
+    stones,
+    get turn() {
+      return gameState.turn;
+    },
+    get nextPlayerIndex() {
+      return gameState.turn === StoneColor.WHITE ? 0 : 1;
+    }
+  };
 };

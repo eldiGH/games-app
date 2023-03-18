@@ -1,4 +1,4 @@
-import { RoomStatus, type RoomInfo } from '@shared/types';
+import { RoomStatus, type WsRoom } from '@shared/types';
 import type { WsClient } from '../types';
 
 export interface UpdateRequest {
@@ -63,7 +63,7 @@ const getRandomRoomId = (): string => {
   return id;
 };
 
-const roomMapper = (room: Room): RoomInfo => {
+const roomMapper = (room: Room): WsRoom => {
   const { id, players, playersInRoom, leader, status } = room;
 
   return {
@@ -149,6 +149,11 @@ export const roomsManagerFactory = (playersCount: number) => {
       if (playerIndex !== -1) {
         thisRoom.players.splice(playerIndex, 1, null);
         thisRoom.status = RoomStatus.Waiting;
+
+        for (const player of thisRoom.players) {
+          if (player) player.isReady = false;
+        }
+
         updateRequest.updateRoomsList = true;
         updateRequest.updateThisRoom = true;
       }
@@ -221,6 +226,10 @@ export const roomsManagerFactory = (playersCount: number) => {
       updateRequest.updateRoomsList = true;
       updateRequest.updateThisRoom = true;
 
+      for (const player of thisRoom.players) {
+        if (player) player.isReady = false;
+      }
+
       return updateRequest;
     };
 
@@ -285,7 +294,7 @@ export const roomsManagerFactory = (playersCount: number) => {
   };
 
   const getRoomsInfo = () => {
-    const roomsInfo: RoomInfo[] = rooms.map(roomMapper);
+    const roomsInfo: WsRoom[] = rooms.map(roomMapper);
 
     return roomsInfo;
   };

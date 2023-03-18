@@ -1,7 +1,8 @@
-import type { Point } from '@shared/classes';
+import type { MoveData } from './MoveData';
 
 export interface GameController {
-  move: (from: Point, to: Point) => boolean;
+  readonly nextPlayerIndex: number;
+  move: (moveData: MoveData) => boolean;
 }
 
-export type GameControllerFactory = () => GameController;
+export type GameControllerFactory<T extends GameController = GameController> = () => T;

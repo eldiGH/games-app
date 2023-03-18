@@ -7,10 +7,10 @@ const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error('JWT_SECRET NOT FOUND');
 
 export const authenticate = async (token: string) => {
-	const decodedJwt = jwt.verify(token, jwtSecret) as JwtPayload;
+  const decodedJwt = jwt.verify(token, jwtSecret) as JwtPayload;
 
-	const player = await PlayersService.findPlayerById(decodedJwt.id);
-	if (!player) throw NotAuthorized();
+  const player = await PlayersService.findPlayerById(decodedJwt.id);
+  if (!player) throw NotAuthorized();
 
-	return player;
+  return player;
 };
