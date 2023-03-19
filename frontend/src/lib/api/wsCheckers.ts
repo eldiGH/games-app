@@ -1,24 +1,45 @@
-import { roomsExtendedClient } from '$lib/helpers';
+import { roomsExtendedClient, type RoomsWsConnect } from '$lib/helpers';
 import type { WsClientFactory } from '$lib/types';
 import type { MoveData } from '@shared/types';
 import { wsControllerFactory } from './wsClient';
-import { checkersControllerFactory } from '@shared/gameControllers';
+import { checkersControllerFactory, type CheckersGameController } from '@shared/gameControllers';
 import type { BoardData, BoardItem } from '$lib/components/Board/Board.svelte';
-import { writable, type Readable } from 'svelte/store';
+import { get, writable, type Readable } from 'svelte/store';
 import type { Point } from '@shared/classes';
+import { playerStore } from '$lib/stores';
 
 export interface WsCheckersClientMethods {
   readonly boardData: Readable<BoardData>;
+  readonly winnerIndex: number | null;
   move: (moveData: MoveData) => boolean;
   startDrag: (position: Point) => void;
   stopDrag: () => void;
 }
 
-roomsExtendedClient(wsControllerFactory('checkers'));
-
-export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> = (wsClient) => {
+const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsConnect> = (
+  wsClient
+) => {
   const connect = async () => {
-    const game = checkersControllerFactory();
+    const client = await wsClient();
+    const { addMessageListener } = client;
+
+    let myPlayerIndex = -1;
+
+    client.onRoomStart(() => {
+      game.set(checkersControllerFactory());
+
+      const room = get(client.room);
+
+      const myIndex =
+        room?.players.findIndex(
+          (player) => player && player.nickname === get(playerStore)?.nickname
+        ) ?? -1;
+      myPlayerIndex = myIndex;
+
+      calculateBoardData();
+    });
+
+    const game = writable<CheckersGameController>(checkersControllerFactory());
 
     const boardDataStore = writable<BoardData>([]);
 
@@ -27,7 +48,7 @@ export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> =
       let currentMarkedFieldsIndex = 0;
       const boardData: BoardData = [];
 
-      const { stones } = game;
+      const { stones, nextPlayerIndex } = get(game);
 
       for (let y = 0; y <= 7; y++) {
         const rank: BoardItem[] = [];
@@ -40,7 +61,7 @@ export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> =
             const stone = stones[currentStonesIndex];
 
             item.imgUrl = `/svg/checkers/${stone.color}_${stone.isDame ? 'dame' : 'stone'}.svg`;
-            item.draggable = stone.color === game.turn && !!stone.possibleMoves.length;
+            item.draggable = nextPlayerIndex === myPlayerIndex && !!stone.possibleMoves.length;
 
             currentStonesIndex++;
           }
@@ -59,7 +80,7 @@ export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> =
     };
 
     const startDrag = (position: Point) => {
-      const stone = game.getStone(position);
+      const stone = get(game).getStone(position);
       if (!stone) return;
 
       const markedFields = stone.possibleMoves.map(({ position }) => position);
@@ -71,11 +92,8 @@ export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> =
       calculateBoardData();
     };
 
-    const client = await wsClient();
-    const { addMessageListener } = client;
-
     const handleMove = (moveData: MoveData): boolean => {
-      const moveSucceeded = game.move(moveData);
+      const moveSucceeded = get(game).move(moveData);
       if (!moveSucceeded) return false;
 
       calculateBoardData();
@@ -96,12 +114,16 @@ export const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods> =
     };
 
     calculateBoardData();
+
     return {
       ...client,
       move,
       boardData: { subscribe: boardDataStore.subscribe },
       startDrag,
-      stopDrag
+      stopDrag,
+      get winnerIndex() {
+        return get(game).winnerIndex;
+      }
     };
   };
 

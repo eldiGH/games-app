@@ -21,7 +21,7 @@ export type WsConnectedBase = {
 
 export type WsClient<T> = () => Promise<T & WsConnectedBase>;
 
-export type WsClientFactory<T> = <C>(wsClient: WsClient<C>) => WsClient<T & C>;
+export type WsClientFactory<T, C = unknown> = (wsClient: WsClient<C>) => WsClient<T & C>;
 
 export type WsControllerFactory = (controller: string) => WsClient<WsConnectedBase>;
 

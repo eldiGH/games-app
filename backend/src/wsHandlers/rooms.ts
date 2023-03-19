@@ -1,14 +1,27 @@
+import type { WebSocket } from 'ws';
 import { roomsManagerFactory, type RoomManager, type WsMessageHandler } from '../helpers';
 
 export const handleRooms = (message: WsMessageHandler, playersCount = 2): RoomManager => {
   const roomsManager = roomsManagerFactory(playersCount);
 
+  function unsubscribeCleanup(this: WebSocket) {
+    const client = roomsManager.getSubscriptionClientFromSocket(this);
+    if (!client) return;
+
+    roomsManager.unsubscribeRoomList(client);
+  }
+
+  function leaveRoomCleanup(this: WebSocket) {
+    const client = roomsManager.getRoomClientFromSocket(this);
+    if (!client) return;
+
+    roomsManager.leaveRoom(client);
+  }
+
   message('subscribeRoomsList', (client) => {
     roomsManager.subscribeRoomList(client);
 
-    client.onClose(() => {
-      roomsManager.unsubscribeRoomList(client);
-    });
+    client.addSocketEventListenerOnce('close', unsubscribeCleanup);
   });
 
   message('unsubscribeRoomList', (client) => {
@@ -20,17 +33,13 @@ export const handleRooms = (message: WsMessageHandler, playersCount = 2): RoomMa
 
     client.send('roomCreated', newId);
 
-    client.onClose(() => {
-      roomsManager.leaveRoom(client);
-    });
+    client.addSocketEventListenerOnce('close', leaveRoomCleanup);
   });
 
   message('joinRoom', (client, id) => {
     roomsManager.joinRoom(client, id);
 
-    client.onClose(() => {
-      roomsManager.leaveRoom(client);
-    });
+    client.addSocketEventListenerOnce('close', leaveRoomCleanup);
   });
 
   message('sit', (client, index) => {

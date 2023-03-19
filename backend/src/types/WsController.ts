@@ -33,4 +33,5 @@ export interface WsClient {
     type: T
   ) => Promise<WsMessageToServer<T>['data']>;
   onClose: (callback: () => void) => void;
+  addSocketEventListenerOnce: (type: 'close', callback: (this: WebSocket) => void) => void;
 }

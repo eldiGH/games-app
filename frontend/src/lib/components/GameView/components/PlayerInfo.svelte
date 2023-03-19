@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { WsCheckersClient } from '$lib/api/wsCheckers';
   import Button from '$lib/components/Button/Button.svelte';
+  import type { RoomPlayer } from '$lib/types';
   import type { PlayerWithRating } from '@shared/types';
   import IconButton from '@smui/icon-button';
 

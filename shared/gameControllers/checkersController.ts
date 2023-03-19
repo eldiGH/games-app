@@ -1,5 +1,6 @@
 import { Point } from '@shared/classes';
 import {
+  CheckersPlayerIndex,
   StoneColor,
   type GameController,
   type GameControllerFactory,
@@ -11,8 +12,13 @@ import {
 export interface CheckersGameController extends GameController {
   getStone: (position: Point) => Stone | undefined;
   readonly stones: Stone[];
-  readonly turn: StoneColor;
 }
+
+const getPlayerIndexFromColor = (color: StoneColor) =>
+  color === StoneColor.WHITE ? CheckersPlayerIndex.WHITE : CheckersPlayerIndex.RED;
+
+const getOppositeColor = (color: StoneColor) =>
+  color === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
 
 export const getInitialStones = (): Stone[] => {
   const stones: Stone[] = [];
@@ -44,22 +50,24 @@ export const getInitialStones = (): Stone[] => {
 
 export const checkersControllerFactory: GameControllerFactory<CheckersGameController> = () => {
   let stones: Stone[] = getInitialStones();
-  const gameState = { turn: StoneColor.WHITE };
+  let turn = StoneColor.WHITE;
+  let winnerIndex: CheckersPlayerIndex | null = null;
+  let movesWithoutCapture = 0;
 
   const getStone = (position: Point) => {
     return stones.find((stone) => stone.position.eq(position));
   };
 
   const changeTurn = () => {
-    gameState.turn = gameState.turn === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
+    turn = turn === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
   };
 
   const availableMoves = (stone: Stone): StoneMove[] => {
-    if (stone.color !== gameState.turn) return [];
+    if (stone.color !== turn || winnerIndex !== null) return [];
 
     const availableMoves: StoneMove[] = [];
     const signMultiplier = stone.color === StoneColor.WHITE ? 1 : -1;
-    const oppositeColor = stone.color === StoneColor.WHITE ? StoneColor.RED : StoneColor.WHITE;
+    const oppositeColor = getOppositeColor(turn);
 
     if (!stone.isDame) {
       for (let x = -1; x <= 1; x += 2) {
@@ -116,6 +124,8 @@ export const checkersControllerFactory: GameControllerFactory<CheckersGameContro
   };
 
   const calculateAllPossibleMoves = () => {
+    if (winnerIndex !== null) return;
+
     for (const stone of stones) {
       stone.possibleMoves = availableMoves(stone);
     }
@@ -131,7 +141,41 @@ export const checkersControllerFactory: GameControllerFactory<CheckersGameContro
     }
   };
 
+  const checkForWin = () => {
+    const sortedStones = {
+      [StoneColor.WHITE]: [] as Stone[],
+      [StoneColor.RED]: [] as Stone[]
+    };
+
+    for (const stone of stones) {
+      sortedStones[stone.color].push(stone);
+    }
+
+    if (sortedStones[StoneColor.WHITE].length === 0) {
+      winnerIndex = CheckersPlayerIndex.RED;
+      return;
+    } else if (sortedStones[StoneColor.RED].length === 0) {
+      winnerIndex = CheckersPlayerIndex.WHITE;
+      return;
+    }
+
+    const myColor = turn;
+    const myAvailableMoves = sortedStones[myColor].reduce(
+      (acc, stone) => acc + stone.possibleMoves.length,
+      0
+    );
+
+    if (myAvailableMoves === 0) {
+      winnerIndex = getPlayerIndexFromColor(getOppositeColor(myColor));
+      return;
+    }
+
+    if (movesWithoutCapture >= 15) winnerIndex = CheckersPlayerIndex.BOTH;
+  };
+
   const move = (moveData: MoveData): boolean => {
+    if (winnerIndex !== null) return false;
+
     const from = new Point(moveData.from);
     const to = new Point(moveData.to);
 
@@ -161,6 +205,8 @@ export const checkersControllerFactory: GameControllerFactory<CheckersGameContro
           calculateAllPossibleMoves();
         }
       }
+
+      movesWithoutCapture = 0;
     } else {
       changeTurn();
 
@@ -168,30 +214,32 @@ export const checkersControllerFactory: GameControllerFactory<CheckersGameContro
         ((stone.color === StoneColor.WHITE && stone.position.y === 7) ||
           (stone.color === StoneColor.RED && stone.position.y === 0)) &&
         !stone.isDame
-      ) {
+      )
         stone.isDame = true;
-        calculateAllPossibleMoves();
-      }
 
       calculateAllPossibleMoves();
+      movesWithoutCapture++;
     }
 
     stones = stones.sort((a, b) => Point.comparator(a.position, b.position));
+
+    checkForWin();
 
     return true;
   };
 
   calculateAllPossibleMoves();
-
   return {
     move,
     getStone,
-    stones,
-    get turn() {
-      return gameState.turn;
+    get stones() {
+      return stones;
     },
     get nextPlayerIndex() {
-      return gameState.turn === StoneColor.WHITE ? 0 : 1;
+      return getPlayerIndexFromColor(turn);
+    },
+    get winnerIndex() {
+      return winnerIndex;
     }
   };
 };

@@ -1,5 +1,10 @@
 import type { GameType } from '@prisma/client';
-import type { GameController, GameControllerFactory, MoveData } from '@shared/types';
+import {
+  RoomStatus,
+  type GameController,
+  type GameControllerFactory,
+  type MoveData
+} from '@shared/types';
 import { sendToAllClients, type Room, type RoomManager, type WsMessageHandler } from '../helpers';
 import type { WsClient } from '../types';
 
@@ -51,6 +56,8 @@ export const handleGames = (
       playerIndex
     } = gameWrapperData;
 
+    if (game.winnerIndex !== null) return;
+
     if (playerIndex !== game.nextPlayerIndex) return;
 
     const moveSucceeded = game.move(moveData);
@@ -62,5 +69,10 @@ export const handleGames = (
       'move',
       moveData
     );
+
+    if (game.winnerIndex !== null) {
+      room.status = RoomStatus.Full;
+      room.sendRoomData();
+    }
   });
 };

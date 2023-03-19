@@ -54,9 +54,17 @@ const wsClient = (socket: WebSocket, req: ReqWithPlayer): WsClient => {
     socket.on('close', callback);
   };
 
+  const addSocketEventListenerOnce = (type: 'close', callback: (this: WebSocket) => void) => {
+    const listeners = socket.listeners(type);
+
+    if (listeners.includes(callback)) return;
+
+    socket.on(type, callback);
+  };
+
   const { player } = req;
 
-  return { send, player, socket, waitForMessage, onClose };
+  return { send, player, socket, waitForMessage, onClose, addSocketEventListenerOnce };
 };
 
 export const wsController = (path: string): WsController => {

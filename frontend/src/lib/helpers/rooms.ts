@@ -1,8 +1,8 @@
 import type { Room, WsClientFactory } from '$lib/types';
-import type { WsRoom } from '@shared/types';
-import { writable, type Readable } from 'svelte/store';
+import { RoomStatus, type WsRoom } from '@shared/types';
+import { get, writable, type Readable } from 'svelte/store';
 
-interface RoomsWsConnect {
+export interface RoomsWsConnect {
   join: (id: string) => Promise<void>;
   subscribeList: () => void;
   unsubscribeList: () => void;
@@ -11,6 +11,7 @@ interface RoomsWsConnect {
   kick: (index: number) => Promise<void>;
   ready: () => Promise<void>;
   unready: () => Promise<void>;
+  onRoomStart: (callback: () => void) => void;
   roomsList: Readable<Room[] | null>;
   room: Readable<Room | null>;
 }
@@ -30,6 +31,8 @@ export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) =
     const client = await wsClient();
     const { send, addMessageListener, removeMessageListener, waitForMessage } = client;
 
+    const onRoomStartListeners: (() => void)[] = [];
+
     const roomsList = writable<Room[] | null>(null);
     const room = writable<Room | null>(null);
 
@@ -38,6 +41,12 @@ export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) =
     };
 
     const refreshRoomCallback = (data: WsRoom) => {
+      if (data.status === RoomStatus.Playing && get(room)?.status !== RoomStatus.Playing) {
+        for (const callback of onRoomStartListeners) {
+          callback();
+        }
+      }
+
       room.set(roomMapper(data));
     };
 
@@ -92,6 +101,10 @@ export const roomsExtendedClient: WsClientFactory<RoomsWsConnect> = (wsClient) =
         send('unready', undefined);
 
         await waitForMessage('roomData');
+      },
+
+      onRoomStart: (callback: () => void) => {
+        onRoomStartListeners.push(callback);
       }
     };
 

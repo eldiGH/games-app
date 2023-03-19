@@ -1,4 +1,5 @@
 import { RoomStatus, type WsRoom } from '@shared/types';
+import type WebSocket from 'ws';
 import type { WsClient } from '../types';
 
 export interface UpdateRequest {
@@ -41,6 +42,8 @@ export interface RoomManager {
   ready: (client: WsClient) => void;
   unready: (client: WsClient) => void;
   onRoomStart: (callback: (room: Room) => void) => void;
+  getSubscriptionClientFromSocket: (socket: WebSocket) => WsClient | undefined;
+  getRoomClientFromSocket: (socket: WebSocket) => WsClient | undefined;
 }
 
 const getRandomRoomId = (): string => {
@@ -405,6 +408,19 @@ export const roomsManagerFactory = (playersCount: number) => {
     onRoomStartEventHandlers.push(callback);
   };
 
+  const getSubscriptionClientFromSocket = (socket: WebSocket) =>
+    roomListSubscribers.find((client) => client.socket === socket);
+
+  const getRoomClientFromSocket = (socket: WebSocket) => {
+    let client: undefined | WsClient = undefined;
+
+    rooms.find((room) => {
+      client = room.playersInRoom.find((client) => client.socket === socket);
+    });
+
+    return client;
+  };
+
   const manager: RoomManager = {
     addRoom,
     sit,
@@ -415,7 +431,9 @@ export const roomsManagerFactory = (playersCount: number) => {
     unsubscribeRoomList,
     ready,
     unready,
-    onRoomStart
+    onRoomStart,
+    getRoomClientFromSocket,
+    getSubscriptionClientFromSocket
   };
 
   return manager;

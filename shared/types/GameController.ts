@@ -2,6 +2,7 @@ import type { MoveData } from './MoveData';
 
 export interface GameController {
   readonly nextPlayerIndex: number;
+  readonly winnerIndex: number | null;
   move: (moveData: MoveData) => boolean;
 }
 
