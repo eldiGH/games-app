@@ -54,8 +54,24 @@ export class Point {
     return false;
   }
 
-  within(xMin: number, yMin: number, xMax: number, yMax: number): boolean {
-    return this.gtEq(xMin, yMin) && this.ltEq(xMax, yMax);
+  within(xMin: number, yMin: number, xMax: number, yMax: number): boolean;
+  within(point1: Point, point2: Point): boolean;
+  within(
+    xMinOrPoint: number | Point,
+    yMinOrPoint: number | Point,
+    xMax?: number,
+    yMax?: number
+  ): boolean {
+    if (typeof xMinOrPoint === 'number' && typeof yMinOrPoint === 'number' && xMax && yMax) {
+      return this.gtEq(xMinOrPoint, yMinOrPoint) && this.ltEq(xMax, yMax);
+    } else if (xMinOrPoint instanceof Point && yMinOrPoint instanceof Point) {
+      const points = [xMinOrPoint, yMinOrPoint];
+      points.sort(Point.comparator);
+
+      return this.gtEq(points[0]) && this.ltEq(points[1]);
+    }
+
+    return false;
   }
 
   eq({ x, y }: Point): boolean;
@@ -85,5 +101,12 @@ export class Point {
 
   toCoordinates(): Coordinates {
     return { x: this.x, y: this.y };
+  }
+
+  static getRandom(xMin: number, yMin: number, xMax: number, yMax: number) {
+    return new Point(
+      Math.floor(Math.random() * (xMax - xMin) + xMin),
+      Math.floor(Math.random() * (yMax - yMin) + yMin)
+    );
   }
 }

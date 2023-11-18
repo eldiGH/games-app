@@ -9,3 +9,4 @@ export * from './WsRoom';
 export * from './PlayerWithRating';
 export * from './GameController';
 export * from './MoveData';
+export * from './ships';
