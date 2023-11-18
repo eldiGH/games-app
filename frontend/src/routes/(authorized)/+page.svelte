@@ -5,10 +5,7 @@
   const cards: CardData[] = [
     { title: 'Szachy', url: '/chess', img: '/chess.png' },
     { title: 'Warcaby', url: '/checkers', img: '/checkers.png' },
-    { title: 'Statki', url: '/chess', img: '/chess.png' },
-    { title: 'Kółko i krzyżyk', url: '/chess', img: '/chess.png' },
-    { title: 'Saper', url: '/chess', img: '/chess.png' },
-    { title: 'Snake', url: '/chess', img: '/chess.png' }
+    { title: 'Statki', url: '/ships', img: '/ships.png' }
   ];
 </script>
 

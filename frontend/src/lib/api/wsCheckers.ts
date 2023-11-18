@@ -10,10 +10,10 @@ import { playerStore } from '$lib/stores';
 
 export interface WsCheckersClientMethods {
   readonly boardData: Readable<BoardData>;
-  readonly winnerIndex: number | null;
   move: (moveData: MoveData) => boolean;
   startDrag: (position: Point) => void;
   stopDrag: () => void;
+  winnerIndex: number | null;
 }
 
 const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsConnect> = (
@@ -121,9 +121,7 @@ const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsC
       boardData: { subscribe: boardDataStore.subscribe },
       startDrag,
       stopDrag,
-      get winnerIndex() {
-        return get(game).winnerIndex;
-      }
+      winnerIndex: null
     };
   };
 

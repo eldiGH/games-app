@@ -1,4 +1,5 @@
 import type { Point } from '@shared/classes';
+import type { Coordinates } from './Coordinates';
 
 export enum ShipType {
   Carrier,
@@ -10,6 +11,11 @@ export enum ShipType {
 export interface Ship {
   type: ShipType;
   points: Point[];
+}
+
+export interface ShipDto {
+  type: ShipType;
+  points: Coordinates[];
 }
 
 export interface ShipTemplate {

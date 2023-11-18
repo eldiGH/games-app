@@ -1,12 +1,11 @@
 <script lang="ts">
-  import type { WsCheckersClient } from '$lib/api/wsCheckers';
   import Button from '$lib/components/Button/Button.svelte';
-  import type { RoomPlayer } from '$lib/types';
+  import type { RoomsWsConnect } from '$lib/helpers';
   import type { PlayerWithRating } from '@shared/types';
   import IconButton from '@smui/icon-button';
 
   export let players: (PlayerWithRating | null)[];
-  export let client: WsCheckersClient | null;
+  export let client: RoomsWsConnect | null;
   export let me: string;
   export let leader: string;
   export let slot: number;

@@ -16,6 +16,10 @@ export interface RoomsWsConnect {
   room: Readable<Room | null>;
 }
 
+export interface RoomsWsWithWinner extends RoomsWsConnect {
+  winnerIndex: number | null;
+}
+
 const roomMapper = (room: WsRoom): Room => {
   const { players, ...roomData } = room;
 

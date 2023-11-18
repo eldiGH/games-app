@@ -1,5 +1,7 @@
+import type { Coordinates } from './Coordinates';
 import type { MoveData } from './MoveData';
 import type { WsRoom } from './WsRoom';
+import type { ShipDto } from './ships';
 
 export type GetWsMessage<Type extends string, Data> = {
   type: Type;
@@ -7,6 +9,7 @@ export type GetWsMessage<Type extends string, Data> = {
 };
 
 // Room Handling
+
 export type WsSubscribeRoomList = GetWsMessage<'subscribeRoomsList', undefined>;
 export type WsUnsubscribeRoomList = GetWsMessage<'unsubscribeRoomList', undefined>;
 
@@ -24,10 +27,25 @@ export type WsKick = GetWsMessage<'kick', number>;
 export type WsReady = GetWsMessage<'ready', undefined>;
 export type WsUnready = GetWsMessage<'unready', undefined>;
 
+// Game Messages
+
 export type WsMove = GetWsMessage<'move', MoveData>;
+export type WsStart = GetWsMessage<'start', undefined>;
+
+// Ship Messages
+
+export type WsShipLayout = GetWsMessage<'shipLayout', ShipDto[]>;
+export type WsShoot = GetWsMessage<'shoot', Coordinates>;
 
 // Messages to client
-export type AnyWsMessagesToClient = WsRoomCreated | WsRoomsList | WsRoomData | WsMove;
+
+export type AnyWsMessagesToClient =
+  | WsRoomCreated
+  | WsRoomsList
+  | WsRoomData
+  | WsMove
+  | WsShoot
+  | WsStart;
 
 export type WsMessagesToClientType = AnyWsMessagesToClient['type'];
 export type WsMessageToClient<Type extends WsMessagesToClientType> = Extract<
@@ -36,6 +54,7 @@ export type WsMessageToClient<Type extends WsMessagesToClientType> = Extract<
 >;
 
 // Messages to server
+
 export type AnyWsMessagesToServer =
   | WsSubscribeRoomList
   | WsUnsubscribeRoomList
@@ -45,7 +64,9 @@ export type AnyWsMessagesToServer =
   | WsKick
   | WsReady
   | WsUnready
-  | WsMove;
+  | WsMove
+  | WsShipLayout
+  | WsShoot;
 
 export type WsMessagesToServerType = AnyWsMessagesToServer['type'];
 export type WsMessageToServer<Type extends WsMessagesToServerType> = Extract<

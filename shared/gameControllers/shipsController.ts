@@ -1,6 +1,13 @@
 import { Point } from '@shared/classes';
 import { ShipType, type Ship, type ShipTemplate } from '@shared/types';
 
+enum ShipDirection {
+  Up,
+  Right,
+  Down,
+  Left
+}
+
 const SHIP_LAYOUTS: ShipTemplate[] = [
   { count: 1, size: 5, type: ShipType.Carrier },
   { count: 1, size: 4, type: ShipType.Battleship },
@@ -10,28 +17,31 @@ const SHIP_LAYOUTS: ShipTemplate[] = [
 
 export interface ShipsGameController {
   readonly isMyTurn: boolean;
-  readonly isPlacing: boolean;
   readonly shotsOnMe: Point[];
   readonly shotsOnEnemy: Point[];
+  readonly missesOnEnemy: Point[];
   readonly ships: Ship[];
-  shotMe: (point: Point) => boolean;
+  shootMe: (point: Point) => boolean;
   shoot: (point: Point) => boolean;
   randomizePlacement: () => void;
+  setShips: (ships: Ship[]) => void;
+  setMyTurn: (isMyTurn: boolean) => void;
+  setTurnUpdateListener: (callback: (turn: boolean) => void) => void;
 }
 
-const getShip = (startPoint: Point, direction: number, template: ShipTemplate): Ship => {
+const getShip = (startPoint: Point, direction: ShipDirection, template: ShipTemplate): Ship => {
   const ship: Ship = { type: template.type, points: [startPoint] };
 
   for (let i = 1; i < template.size; i++) {
     switch (direction) {
-      case 0:
-        ship.points.push(startPoint.add(0, i));
+      case ShipDirection.Up:
+        ship.points.push(startPoint.add(0, -i));
         break;
-      case 1:
+      case ShipDirection.Right:
         ship.points.push(startPoint.add(i, 0));
         break;
-      case 2:
-        ship.points.push(startPoint.add(0, -i));
+      case ShipDirection.Down:
+        ship.points.push(startPoint.add(0, i));
         break;
       default:
         ship.points.push(startPoint.add(-i, 0));
@@ -47,28 +57,28 @@ const randomizeShip = (template: ShipTemplate): Ship => {
   const { size } = template;
 
   const startPoint = Point.getRandom(0, 0, 10, 10);
-  const direction = Math.floor(Math.random() * 4);
+  const direction: ShipDirection = Math.floor(Math.random() * 4);
 
   for (let i = 0; i < 4; i++) {
-    switch ((direction + i) % 4) {
-      case 0:
+    switch (((direction + i) % 4) as ShipDirection) {
+      case ShipDirection.Up:
         if (startPoint.within(0, 0 + size, 10, 10)) {
-          return getShip(startPoint, 0, template);
+          return getShip(startPoint, ShipDirection.Up, template);
         }
         break;
-      case 1:
+      case ShipDirection.Right:
         if (startPoint.within(0, 0, 10 - size, 10)) {
-          return getShip(startPoint, 1, template);
+          return getShip(startPoint, ShipDirection.Right, template);
         }
         break;
-      case 2:
+      case ShipDirection.Down:
         if (startPoint.within(0, 0, 10, 10 - size)) {
-          return getShip(startPoint, 2, template);
+          return getShip(startPoint, ShipDirection.Down, template);
         }
         break;
       default:
         if (startPoint.within(0 + size, 0, 10, 10)) {
-          return getShip(startPoint, 3, template);
+          return getShip(startPoint, ShipDirection.Left, template);
         }
         break;
     }
@@ -78,15 +88,18 @@ const randomizeShip = (template: ShipTemplate): Ship => {
 };
 
 export const shipsGameControllerFactory = (): ShipsGameController => {
-  let isMyTurn = true;
-  const isPlacing = true;
+  let _isMyTurn = false;
 
   const shotsOnMe: Point[] = [];
   const shotsOnEnemy: Point[] = [];
+  const missesOnEnemy: Point[] = [];
+
   const ships: Ship[] = [];
 
-  const shotMe = (point: Point): boolean => {
-    if (isMyTurn) {
+  let turnUpdateListener: ((turn: boolean) => void) | null = null;
+
+  const shootMe = (point: Point): boolean => {
+    if (_isMyTurn) {
       return false;
     }
 
@@ -100,12 +113,12 @@ export const shipsGameControllerFactory = (): ShipsGameController => {
     }
 
     shotsOnMe.push(point);
-    isMyTurn = true;
+    setMyTurn(true);
     return true;
   };
 
   const shoot = (point: Point): boolean => {
-    if (!isMyTurn) {
+    if (!_isMyTurn) {
       return false;
     }
 
@@ -118,7 +131,7 @@ export const shipsGameControllerFactory = (): ShipsGameController => {
     }
 
     shotsOnEnemy.push(point);
-    isMyTurn = true;
+    setMyTurn(false);
     return true;
   };
 
@@ -135,12 +148,11 @@ export const shipsGameControllerFactory = (): ShipsGameController => {
 
           let success = true;
           for (const ship of ships) {
-            const shipMin = ship.points[0];
-            const shipMax = ship.points[ship.points.length - 1];
-
-            if (shipMin.within(min, max) || shipMax.within(min, max)) {
-              success = false;
-              break;
+            for (const point of ship.points) {
+              if (point.within(min, max) || point.within(min, max)) {
+                success = false;
+                break;
+              }
             }
           }
 
@@ -158,21 +170,39 @@ export const shipsGameControllerFactory = (): ShipsGameController => {
     }
   };
 
+  const setShips = (shipsLayout: Ship[]) => {
+    ships.splice(0);
+
+    ships.push(...shipsLayout);
+  };
+
+  const setMyTurn = (isMyTurn: boolean) => {
+    _isMyTurn = isMyTurn;
+    turnUpdateListener?.(isMyTurn);
+  };
+
+  const setTurnUpdateListener = (callback: (turn: boolean) => void) => {
+    turnUpdateListener = callback;
+  };
+
   return {
-    shotMe,
+    shootMe,
     shoot,
     randomizePlacement,
+    setShips,
+    setMyTurn,
+    setTurnUpdateListener,
     get isMyTurn() {
-      return isMyTurn;
-    },
-    get isPlacing() {
-      return isPlacing;
+      return _isMyTurn;
     },
     get shotsOnMe() {
       return shotsOnMe;
     },
     get shotsOnEnemy() {
       return shotsOnEnemy;
+    },
+    get missesOnEnemy() {
+      return missesOnEnemy;
     },
     get ships() {
       return ships;

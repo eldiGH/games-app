@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { WsCheckersClient } from '$lib/api/wsCheckers';
+  import type { RoomsWsWithWinner } from '$lib/helpers';
   import { playerStore } from '$lib/stores';
   import type { Room, RoomPlayer } from '$lib/types';
   import Loader from '../Loader/Loader.svelte';
@@ -7,7 +8,9 @@
   import PlayerInfo from './components/PlayerInfo.svelte';
 
   export let room: Room | null | undefined;
-  export let client: WsCheckersClient | null;
+  export let client: RoomsWsWithWinner | null;
+  export let horizontal = false;
+  export let additionalButtonsWhenSat: { content: string; onClick: () => void }[] = [];
 
   let me: RoomPlayer | undefined | null;
   $: me = room?.players.find((player) => player && player.nickname === $playerStore?.nickname);
@@ -16,23 +19,43 @@
 {#if room}
   <div class="container">
     <div>
-      <PlayerInfo
-        me={$playerStore?.nickname ?? ''}
-        leader={room.leader}
-        slot={0}
-        players={room?.players}
-        {client}
-      />
-      <slot />
-      <PlayerInfo
-        me={$playerStore?.nickname ?? ''}
-        leader={room.leader}
-        slot={1}
-        players={room?.players}
-        {client}
-      />
+      {#if horizontal}
+        <div class="horizontal-info">
+          <PlayerInfo
+            me={$playerStore?.nickname ?? ''}
+            leader={room.leader}
+            slot={0}
+            players={room?.players}
+            {client}
+          />
+          <PlayerInfo
+            me={$playerStore?.nickname ?? ''}
+            leader={room.leader}
+            slot={1}
+            players={room?.players}
+            {client}
+          />
+        </div>
+        <slot />
+      {:else}
+        <PlayerInfo
+          me={$playerStore?.nickname ?? ''}
+          leader={room.leader}
+          slot={0}
+          players={room?.players}
+          {client}
+        />
+        <slot />
+        <PlayerInfo
+          me={$playerStore?.nickname ?? ''}
+          leader={room.leader}
+          slot={1}
+          players={room?.players}
+          {client}
+        />
+      {/if}
     </div>
-    <MiddleInfoBox me={me ?? null} {room} {client} />
+    <MiddleInfoBox me={me ?? null} {room} {client} {additionalButtonsWhenSat} />
   </div>
 {:else}
   <Loader show />
@@ -44,5 +67,11 @@
     display: flex;
     justify-content: center;
     position: relative;
+
+    .horizontal-info {
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+    }
   }
 </style>

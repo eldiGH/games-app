@@ -1,17 +1,19 @@
 <script lang="ts">
   import type { WsCheckersClient } from '$lib/api/wsCheckers';
   import Button from '$lib/components/Button/Button.svelte';
+  import type { RoomsWsConnect, RoomsWsWithWinner } from '$lib/helpers';
   import type { Room, RoomPlayer } from '$lib/types';
   import { RoomStatus } from '@shared/types';
   import Card from '@smui/card';
 
   export let me: RoomPlayer | null;
   export let room: Room;
-  export let client: WsCheckersClient | null;
+  export let client: RoomsWsWithWinner | null;
+  export let additionalButtonsWhenSat: { content: string; onClick: () => void }[] = [];
 
   const getTextContent = (
     room: Room,
-    client: WsCheckersClient | null,
+    client: RoomsWsWithWinner | null,
     me: RoomPlayer | null
   ): string => {
     if (!client) return '';
@@ -36,7 +38,7 @@
 
   const getButtonLabel = (me: RoomPlayer | null): string => (me?.isReady ? 'Anuluj' : 'Gotowy');
 
-  const getIsBoxVisible = (room: Room, client: WsCheckersClient | null): boolean => {
+  const getIsBoxVisible = (room: Room, client: RoomsWsWithWinner | null): boolean => {
     if (!client) return false;
 
     const isGameFinished = client.winnerIndex !== null && room.status === RoomStatus.Full;
@@ -67,6 +69,13 @@
         <Button on:click={handleReady} disabled={room.status === RoomStatus.Waiting}>
           {buttonLabel}
         </Button>
+        {#if me !== null && !me.isReady}
+          {#each additionalButtonsWhenSat as additionalButtonWhenSatItem}
+            <Button on:click={additionalButtonWhenSatItem.onClick}>
+              {additionalButtonWhenSatItem.content}
+            </Button>
+          {/each}
+        {/if}
       </div>
     </Card>
   </div>

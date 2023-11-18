@@ -1,29 +1,53 @@
-<script>
-  import GameView from '$lib/components/GameView/GameView.svelte';
-  import ShipsBoard from '$lib/components/ShipsBoard/ShipsBoard.svelte';
-  import { shipsGameControllerFactory } from '@shared/gameControllers';
+<script lang="ts">
+  import { getContext, onDestroy, onMount } from 'svelte';
+  import { shipsContextKey, type ShipsContext } from './+layout.svelte';
+  import { goto } from '$app/navigation';
+  import RoomsList from '$lib/components/RoomsList/RoomsList.svelte';
 
-  const shipsController = shipsGameControllerFactory();
+  const clientStore = getContext<ShipsContext>(shipsContextKey);
 
-  let ships = shipsController.ships;
+  let isCreating = false;
+
+  $: {
+    $clientStore?.subscribeList();
+  }
+
+  $: roomsStore = $clientStore?.roomsList;
+  $: rooms = $roomsStore;
+
+  onDestroy(() => {
+    $clientStore?.unsubscribeList();
+  });
+
+  const handleNewTableClick = async () => {
+    const client = $clientStore;
+    if (!client) return;
+
+    isCreating = true;
+    try {
+      const roomId = await client.createRoom();
+      goto(`/ships/${roomId}`);
+    } finally {
+      isCreating = false;
+    }
+  };
+
+  const handleRoomJoin = async (id: string) => {
+    const client = $clientStore;
+    if (!client) return;
+
+    goto(`/ships/${id}`);
+  };
 </script>
 
-<div class="boards-container">
-  <ShipsBoard {ships} />
-  <ShipsBoard />
-</div>
-<button
-  on:click={() => {
-    shipsController.randomizePlacement();
-    ships = [...shipsController.ships];
-  }}>Losuj</button
->
+<svelte:head>
+  <title>GamesApp - Warcaby</title>
+</svelte:head>
 
-<style lang="scss">
-  .boards-container {
-    display: flex;
-    flex-direction: column;
-
-    gap: 2rem;
-  }
-</style>
+<RoomsList
+  onRoomJoin={handleRoomJoin}
+  {isCreating}
+  title="Statki"
+  data={rooms ?? null}
+  onNewRoomClick={handleNewTableClick}
+/>

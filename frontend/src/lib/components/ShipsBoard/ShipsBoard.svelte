@@ -1,33 +1,16 @@
 <script lang="ts">
-  import type { ShipsGameController } from '@shared/gameControllers';
-  import type { Ship } from '@shared/types';
+  import type { ShipsBoard } from '$lib/types/Ships';
+  import { Point } from '@shared/classes';
+  import { createEventDispatcher } from 'svelte';
 
-  interface BoardData {
-    hasShip: boolean;
+  interface Events {
+    click: { point: Point };
   }
 
-  const COLS_AND_ROWS_COUNT = 10;
-  export let ships: Ship[] = [];
+  export let shipsBoard: ShipsBoard;
+  export let clickable = false;
 
-  const getBoardData = (ships: Ship[]) => {
-    const board: BoardData[][] = [];
-
-    for (let y = 0; y < 10; y++) {
-      const row: BoardData[] = [];
-      board.push(row);
-
-      for (let x = 0; x < 10; x++) {
-        debugger;
-        row.push({ hasShip: !!ships.find((ship) => ship.points.find((point) => point.eq(x, y))) });
-      }
-    }
-
-    return board;
-  };
-
-  $: boardData = getBoardData(ships);
-
-  $: console.log(boardData);
+  const dispatch = createEventDispatcher<Events>();
 </script>
 
 <div class="root">
@@ -57,10 +40,22 @@
       <div>J</div>
     </div>
     <div>
-      {#each boardData as row}
+      {#each shipsBoard as row, y}
         <div class="row">
-          {#each row as cell}
-            <div class="cell" class:ship={cell.hasShip} />
+          {#each row as cell, x}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div
+              class="cell"
+              class:ship={cell.hasShip}
+              class:miss={cell.hasMiss && !cell.hasShip}
+              class:shot={cell.hasShot || (cell.hasMiss && cell.hasShip)}
+              class:clickable={clickable && !cell.hasMiss && !cell.hasShot && !cell.hasShip}
+              on:click={() => {
+                if (clickable && !cell.hasMiss && !cell.hasShot && !cell.hasShip) {
+                  dispatch('click', { point: new Point(x, y) });
+                }
+              }}
+            />
           {/each}
         </div>
       {/each}
@@ -103,17 +98,43 @@
         width: var(--cellSize);
         height: var(--cellSize);
         border: 1px solid black;
-
-        cursor: pointer;
+        display: flex;
 
         background-color: #a9a9a9;
 
-        &:hover {
-          opacity: 0.8;
+        &.clickable {
+          cursor: pointer;
+          &:hover {
+            opacity: 0.8;
+          }
         }
 
         &.ship {
           background-color: black;
+        }
+
+        &.miss::after,
+        &.shot::after {
+          color: black;
+          font-size: 20px;
+          height: 100%;
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-weight: 900;
+        }
+
+        &.miss::after {
+          content: '⦿';
+        }
+
+        &.shot::after {
+          content: '⦻';
+        }
+
+        &.ship.shot::after {
+          color: white;
         }
       }
     }

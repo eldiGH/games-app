@@ -3,8 +3,9 @@ import { parse } from 'url';
 import { accessTokenQueryRegex, authenticate } from './helpers';
 import type { ReqWithPlayer } from './types';
 import { CheckersWsController } from './ws-controllers';
+import { ShipsWsController } from './ws-controllers/ShipsWsController';
 
-const controllers = [CheckersWsController];
+const controllers = [CheckersWsController, ShipsWsController];
 
 export const addWebsocket = (server: Server<typeof IncomingMessage, typeof ServerResponse>) => {
   server.on('upgrade', async (req, socket, head) => {
