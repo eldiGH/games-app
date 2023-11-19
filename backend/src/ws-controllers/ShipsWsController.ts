@@ -3,6 +3,7 @@ import { handleRooms } from '../wsHandlers';
 import { shipsGameControllerFactory, type ShipsGameController } from '@shared/gameControllers';
 import type { WsClient } from '../types';
 import { Point } from '@shared/classes';
+import { ShotOutcome } from '@shared/types';
 
 interface ShipsPlayer {
   controller: ShipsGameController;
@@ -15,6 +16,8 @@ interface ShipsGame {
 }
 
 const games: ShipsGame[] = [];
+
+const oppositePlayerIndex = (playerIndex: number) => (playerIndex === 0 ? 1 : 0);
 
 const getShipsGameByPlayerClient = (
   client: WsClient
@@ -54,13 +57,15 @@ message('shipLayout', (client, layout) => {
   player.controller.setShips(
     layout.map(({ type, points }) => ({
       type,
-      points: points.map((coordinates) => new Point(coordinates))
+      points: points.map((coordinates) => new Point(coordinates)),
+      timesShot: 0,
+      sunk: false
     }))
   );
 
   player.sentLayout = true;
 
-  const otherPlayer = shipsGame.players[playerIndex === 0 ? 1 : 0];
+  const otherPlayer = shipsGame.players[oppositePlayerIndex(playerIndex)];
 
   if (!otherPlayer.sentLayout) return;
 
@@ -69,6 +74,41 @@ message('shipLayout', (client, layout) => {
   if (!firstWsClient) return;
 
   firstWsClient.send('start', undefined);
+  gameData.shipsGame.players[0].controller.setMyTurn(true);
 });
 
-message('shoot', (coords) => {});
+message('shoot', (client, coords) => {
+  const gameData = getShipsGameByPlayerClient(client);
+
+  if (!gameData) return;
+
+  const {
+    playerIndex,
+    shipsGame: { players, room }
+  } = gameData;
+
+  const myController = players[playerIndex].controller;
+  const opponentController = players[oppositePlayerIndex(playerIndex)].controller;
+  const opponentClient = room.players[oppositePlayerIndex(playerIndex)]?.client;
+  if (!opponentClient) return;
+
+  if (!myController.isMyTurn) return;
+
+  const point = new Point(coords);
+
+  const outcome = opponentController.shootMe(point);
+  if (outcome === ShotOutcome.Error) return;
+  if (!myController.shoot(point, () => outcome)) return;
+
+  client.send('shot', outcome);
+  opponentClient.send('shoot', coords);
+
+  const loserIndex = players.findIndex((p) => p.controller.lost);
+  if (loserIndex === -1) {
+    return;
+  }
+
+  const winnerIndex = oppositePlayerIndex(loserIndex);
+  games.splice(games.indexOf(gameData.shipsGame));
+  roomsManager.end(client, winnerIndex);
+});

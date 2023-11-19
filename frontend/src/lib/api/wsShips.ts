@@ -8,12 +8,13 @@ import type { ShipsBoard, ShipsBoardDataItem } from '$lib/types/Ships';
 import type { Ship } from '@shared/types';
 
 export interface WsShipsClientMethods {
-  shoot: (point: Point) => boolean;
+  shoot: (point: Point) => Promise<boolean>;
   randomizeShipPlacement: () => void;
   myBoard: Readable<ShipsBoard>;
   enemyBoard: Readable<ShipsBoard>;
   isMyTurn: Readable<boolean>;
-  winnerIndex: number | null;
+  hasShips: Readable<boolean>;
+  winnerIndex: Readable<number | null>;
 }
 
 const COLS_AND_ROWS_COUNT = 10;
@@ -78,6 +79,8 @@ const wsShipsClientFactory: WsClientFactory<WsShipsClientMethods, RoomsWsConnect
 
     const myBoard = writable<ShipsBoard>(getEmptyBoardData());
     const enemyBoard = writable<ShipsBoard>(getEmptyBoardData());
+    const hasShips = writable(false);
+    const winnerIndex = writable<number | null>(null);
 
     const isMyTurn = writable(false);
 
@@ -86,6 +89,8 @@ const wsShipsClientFactory: WsClientFactory<WsShipsClientMethods, RoomsWsConnect
     });
 
     client.onRoomStart(() => {
+      winnerIndex.set(null);
+
       client.send(
         'shipLayout',
         controller.ships.map(({ type, points }) => ({
@@ -93,37 +98,73 @@ const wsShipsClientFactory: WsClientFactory<WsShipsClientMethods, RoomsWsConnect
           points: points.map((point) => point.toCoordinates())
         }))
       );
+
+      controller.resetGameState();
+      enemyBoard.update((enemyBoard) => {
+        updateBoardMisses(enemyBoard, controller.missesOnEnemy);
+        updateBoardShots(enemyBoard, controller.shotsOnEnemy);
+
+        return [...enemyBoard];
+      });
+
+      myBoard.update((board) => {
+        updateBoardMisses(board, controller.shotsOnMe);
+
+        return [...board];
+      });
     });
 
     addMessageListener('shoot', (coords) => {
       controller.shootMe(new Point(coords));
+
+      myBoard.update((board) => {
+        updateBoardMisses(board, controller.shotsOnMe);
+
+        return [...board];
+      });
     });
 
     addMessageListener('start', () => {
       controller.setMyTurn(true);
     });
 
+    addMessageListener('end', (data) => {
+      winnerIndex.set(data.winnerIndex);
+    });
+
     const additionalMethods = {
-      shoot: (point: Point) => {
+      shoot: async (point: Point) => {
         if (!point.within(0, 0, 10, 10)) return false;
 
-        // if (!controller.shoot(point)) {
-        //   return false;
-        // }
+        if (
+          !(await controller.shoot(point, () => {
+            client.send('shoot', point);
+            return client.waitForMessage('shot');
+          }))
+        ) {
+          return false;
+        }
 
         enemyBoard.update((enemyBoard) => {
-          enemyBoard[point.y][point.x].hasMiss = true;
+          updateBoardMisses(enemyBoard, controller.missesOnEnemy);
+          updateBoardShots(enemyBoard, controller.shotsOnEnemy);
 
           return [...enemyBoard];
         });
 
-        const { x, y } = point;
-        // client.send('shoot', { x, y });
         return true;
       },
 
       sit: (...args: Parameters<typeof client.sit>) => {
         controller.setShips([]);
+
+        hasShips.set(false);
+
+        myBoard.update((board) => {
+          updateBoardShips(board, controller.ships);
+
+          return [...board];
+        });
 
         return client.sit(...args);
       },
@@ -131,14 +172,25 @@ const wsShipsClientFactory: WsClientFactory<WsShipsClientMethods, RoomsWsConnect
       kick: (...args: Parameters<typeof client.kick>) => {
         controller.setShips([]);
 
+        hasShips.set(false);
+
+        myBoard.update((board) => {
+          updateBoardShips(board, controller.ships);
+
+          return [...board];
+        });
+
         return client.kick(...args);
       },
 
       randomizeShipPlacement: () => {
         controller.randomizePlacement();
 
+        hasShips.set(true);
+
         myBoard.update((board) => {
           updateBoardShips(board, controller.ships);
+          updateBoardMisses(board, controller.shotsOnMe);
 
           return [...board];
         });
@@ -151,7 +203,8 @@ const wsShipsClientFactory: WsClientFactory<WsShipsClientMethods, RoomsWsConnect
       myBoard: { subscribe: myBoard.subscribe },
       enemyBoard: { subscribe: enemyBoard.subscribe },
       isMyTurn: { subscribe: isMyTurn.subscribe },
-      winnerIndex: null
+      hasShips: { subscribe: hasShips.subscribe },
+      winnerIndex: { subscribe: winnerIndex.subscribe }
     };
   };
 

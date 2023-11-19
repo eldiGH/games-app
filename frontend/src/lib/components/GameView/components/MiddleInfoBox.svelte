@@ -10,6 +10,15 @@
   export let room: Room;
   export let client: RoomsWsWithWinner | null;
   export let additionalButtonsWhenSat: { content: string; onClick: () => void }[] = [];
+  export let disableReady: boolean;
+
+  $: winnerIndex = client?.winnerIndex;
+  $: isGameFinished =
+    $winnerIndex !== null && $winnerIndex !== undefined && room.status === RoomStatus.Full;
+
+  $: {
+    console.log({ isGameFinished, winnerIndex: $winnerIndex });
+  }
 
   const getTextContent = (
     room: Room,
@@ -18,9 +27,10 @@
   ): string => {
     if (!client) return '';
 
-    const isGameFinished = client.winnerIndex !== null && room.status === RoomStatus.Full;
-
-    if (isGameFinished) return `Gra zakończona, wygrał gracz ${client.winnerIndex}`;
+    if (isGameFinished) {
+      const winner = room.players[$winnerIndex ?? 0];
+      return `Gra zakończona, wygrał gracz ${winner?.nickname}`;
+    }
 
     if (me) {
       switch (room.status) {
@@ -41,8 +51,6 @@
   const getIsBoxVisible = (room: Room, client: RoomsWsWithWinner | null): boolean => {
     if (!client) return false;
 
-    const isGameFinished = client.winnerIndex !== null && room.status === RoomStatus.Full;
-
     return room.status !== RoomStatus.Playing || isGameFinished;
   };
 
@@ -51,7 +59,7 @@
   $: isBoxVisible = getIsBoxVisible(room, client);
 
   const handleReady = () => {
-    if (!me) return;
+    if (!me || disableReady) return;
 
     if (me.isReady) {
       client?.unready();
@@ -66,9 +74,15 @@
     <Card class="card">
       {textContent}
       <div>
-        <Button on:click={handleReady} disabled={room.status === RoomStatus.Waiting}>
-          {buttonLabel}
-        </Button>
+        {#if me}
+          <Button
+            on:click={handleReady}
+            disabled={room.status === RoomStatus.Waiting ||
+              (room.status === RoomStatus.Full && disableReady)}
+          >
+            {buttonLabel}
+          </Button>
+        {/if}
         {#if me !== null && !me.isReady}
           {#each additionalButtonsWhenSat as additionalButtonWhenSatItem}
             <Button on:click={additionalButtonWhenSatItem.onClick}>

@@ -14,6 +14,7 @@
 
   $: myBoard = client?.myBoard;
   $: enemyBoard = client?.enemyBoard;
+  $: hasShips = client?.hasShips;
 
   const randomizeMyShips = () => {
     $clientStore?.randomizeShipPlacement();
@@ -45,6 +46,7 @@
     client={$clientStore}
     room={$room}
     additionalButtonsWhenSat={[{ content: 'Losuj statki', onClick: randomizeMyShips }]}
+    disableReady={!$hasShips}
   >
     <div class="boards" class:reversed={myIndex !== 0}>
       <ShipsBoard shipsBoard={$myBoard ?? []} />

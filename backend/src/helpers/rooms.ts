@@ -23,6 +23,7 @@ export interface Room {
   kick: (client: WsClient, slot: number) => UpdateRequest;
   ready: (client: WsClient) => UpdateRequest;
   unready: (client: WsClient) => UpdateRequest;
+  end: (winnerIndex: number) => UpdateRequest;
   sendRoomData: () => void;
 }
 
@@ -41,6 +42,7 @@ export interface RoomManager {
   unsubscribeRoomList: (client: WsClient) => void;
   ready: (client: WsClient) => void;
   unready: (client: WsClient) => void;
+  end: (client: WsClient, winnerIndex: number) => void;
   onRoomStart: (callback: (room: Room) => void) => void;
   getSubscriptionClientFromSocket: (socket: WebSocket) => WsClient | undefined;
   getRoomClientFromSocket: (socket: WebSocket) => WsClient | undefined;
@@ -269,6 +271,25 @@ export const roomsManagerFactory = (playersCount: number) => {
       return updateRequest;
     };
 
+    const end = (winnerIndex: number) => {
+      const updateRequest = updateRequestFactory();
+
+      for (const player of thisRoom.players) {
+        if (player) player.isReady = false;
+      }
+
+      updateRequest.updateThisRoom = true;
+      updateRequest.updateRoomsList = true;
+
+      thisRoom.status = RoomStatus.Full;
+
+      for (const player of thisRoom.playersInRoom) {
+        player.send('end', { winnerIndex });
+      }
+
+      return updateRequest;
+    };
+
     const sendRoomData = () => {
       const roomInfo = roomMapper(thisRoom);
 
@@ -290,6 +311,7 @@ export const roomsManagerFactory = (playersCount: number) => {
       kick,
       ready,
       unready,
+      end,
       sendRoomData
     };
 
@@ -404,6 +426,13 @@ export const roomsManagerFactory = (playersCount: number) => {
     updateRequest?.update();
   };
 
+  const end = (client: WsClient, winnerIndex: number) => {
+    const room = getRoomByClient(client);
+    const updateRequest = room?.end(winnerIndex);
+
+    updateRequest?.update();
+  };
+
   const onRoomStart = (callback: (room: Room) => void) => {
     onRoomStartEventHandlers.push(callback);
   };
@@ -431,6 +460,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     unsubscribeRoomList,
     ready,
     unready,
+    end,
     onRoomStart,
     getRoomClientFromSocket,
     getSubscriptionClientFromSocket

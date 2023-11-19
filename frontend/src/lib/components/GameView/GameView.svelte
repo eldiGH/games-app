@@ -11,6 +11,7 @@
   export let client: RoomsWsWithWinner | null;
   export let horizontal = false;
   export let additionalButtonsWhenSat: { content: string; onClick: () => void }[] = [];
+  export let disableReady = false;
 
   let me: RoomPlayer | undefined | null;
   $: me = room?.players.find((player) => player && player.nickname === $playerStore?.nickname);
@@ -55,7 +56,7 @@
         />
       {/if}
     </div>
-    <MiddleInfoBox me={me ?? null} {room} {client} {additionalButtonsWhenSat} />
+    <MiddleInfoBox {disableReady} me={me ?? null} {room} {client} {additionalButtonsWhenSat} />
   </div>
 {:else}
   <Loader show />

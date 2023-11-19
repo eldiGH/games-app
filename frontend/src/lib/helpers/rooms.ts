@@ -17,7 +17,7 @@ export interface RoomsWsConnect {
 }
 
 export interface RoomsWsWithWinner extends RoomsWsConnect {
-  winnerIndex: number | null;
+  winnerIndex: Readable<number | null>;
 }
 
 const roomMapper = (room: WsRoom): Room => {

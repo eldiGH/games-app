@@ -11,6 +11,8 @@ export enum ShipType {
 export interface Ship {
   type: ShipType;
   points: Point[];
+  timesShot: number;
+  sunk: boolean;
 }
 
 export interface ShipDto {
@@ -21,5 +23,11 @@ export interface ShipDto {
 export interface ShipTemplate {
   count: number;
   size: number;
-  type: ShipType;
+}
+
+export enum ShotOutcome {
+  Miss,
+  Hit,
+  Sunk,
+  Error
 }
