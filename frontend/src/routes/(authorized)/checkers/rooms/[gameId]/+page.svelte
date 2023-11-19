@@ -3,7 +3,7 @@
   import Checkers from '$lib/components/Checkers/Checkers.svelte';
   import GameView from '$lib/components/GameView/GameView.svelte';
   import { getContext } from 'svelte';
-  import { checkersContextKey, type CheckersContext } from '../+layout.svelte';
+  import { checkersContextKey, type CheckersContext } from '../../+layout.svelte';
 
   const client = getContext<CheckersContext>(checkersContextKey);
 

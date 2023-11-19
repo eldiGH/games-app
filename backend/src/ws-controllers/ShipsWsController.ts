@@ -1,9 +1,17 @@
-import { messageFactory, wsController, type Room } from '../helpers';
+import {
+  messageFactory,
+  wsController,
+  type Room,
+  rankingsClientTransformer,
+  updateRankingClients
+} from '../helpers';
 import { handleRooms } from '../wsHandlers';
 import { shipsGameControllerFactory, type ShipsGameController } from '@shared/gameControllers';
 import type { WsClient } from '../types';
 import { Point } from '@shared/classes';
 import { ShotOutcome } from '@shared/types';
+import { RankingsService } from '../services/RankingsService';
+import { GameType } from '@prisma/client';
 
 interface ShipsPlayer {
   controller: ShipsGameController;
@@ -33,7 +41,7 @@ const getShipsGameByPlayerClient = (
   return playerIndex !== -1 && shipsGame !== undefined ? { shipsGame, playerIndex } : null;
 };
 
-export const ShipsWsController = wsController('/ships');
+export const ShipsWsController = wsController('/ships', rankingsClientTransformer(GameType.SHIPS));
 const message = messageFactory(ShipsWsController);
 
 const roomsManager = handleRooms(message);
@@ -77,7 +85,7 @@ message('shipLayout', (client, layout) => {
   gameData.shipsGame.players[0].controller.setMyTurn(true);
 });
 
-message('shoot', (client, coords) => {
+message('shoot', async (client, coords) => {
   const gameData = getShipsGameByPlayerClient(client);
 
   if (!gameData) return;
@@ -110,5 +118,21 @@ message('shoot', (client, coords) => {
 
   const winnerIndex = oppositePlayerIndex(loserIndex);
   games.splice(games.indexOf(gameData.shipsGame));
+
+  const winner = room.players[winnerIndex];
+  const loser = room.players[loserIndex];
+
+  if (!winner || !loser) {
+    return;
+  }
+
+  await RankingsService.updateRankings(
+    winner.client.player.id,
+    loser.client.player.id,
+    GameType.SHIPS
+  );
+
+  await updateRankingClients([client, opponentClient]);
+
   roomsManager.end(client, winnerIndex);
 });

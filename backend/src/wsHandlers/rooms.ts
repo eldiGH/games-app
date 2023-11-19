@@ -1,7 +1,11 @@
 import type { WebSocket } from 'ws';
 import { roomsManagerFactory, type RoomManager, type WsMessageHandler } from '../helpers';
+import type { WsRankingsClient } from '../types';
 
-export const handleRooms = (message: WsMessageHandler, playersCount = 2): RoomManager => {
+export const handleRooms = (
+  message: WsMessageHandler<WsRankingsClient>,
+  playersCount = 2
+): RoomManager => {
   const roomsManager = roomsManagerFactory(playersCount);
 
   function unsubscribeCleanup(this: WebSocket) {

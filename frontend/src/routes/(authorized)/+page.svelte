@@ -3,9 +3,9 @@
   import type { CardData } from '$lib/components/GameCard/GameCard.svelte';
 
   const cards: CardData[] = [
-    { title: 'Szachy', url: '/chess', img: '/chess.png' },
-    { title: 'Warcaby', url: '/checkers', img: '/checkers.png' },
-    { title: 'Statki', url: '/ships', img: '/ships.png' }
+    { title: 'Szachy', url: '/chess/rooms', img: '/chess.png' },
+    { title: 'Warcaby', url: '/checkers/rooms', img: '/checkers.png' },
+    { title: 'Statki', url: '/ships/rooms', img: '/ships.png' }
   ];
 </script>
 

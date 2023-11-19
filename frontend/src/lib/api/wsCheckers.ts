@@ -13,7 +13,7 @@ export interface WsCheckersClientMethods {
   move: (moveData: MoveData) => boolean;
   startDrag: (position: Point) => void;
   stopDrag: () => void;
-  winnerIndex: number | null;
+  winnerIndex: Readable<number | null>;
 }
 
 const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsConnect> = (
@@ -42,6 +42,7 @@ const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsC
     const game = writable<CheckersGameController>(checkersControllerFactory());
 
     const boardDataStore = writable<BoardData>([]);
+    const winnerIndex = writable<null | number>(null);
 
     const calculateBoardData = (markedFields?: Point[]) => {
       let currentStonesIndex = 0;
@@ -93,10 +94,17 @@ const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsC
     };
 
     const handleMove = (moveData: MoveData): boolean => {
-      const moveSucceeded = get(game).move(moveData);
+      const controller = get(game);
+
+      const moveSucceeded = controller.move(moveData);
       if (!moveSucceeded) return false;
 
       calculateBoardData();
+
+      if (controller.winnerIndex !== null) {
+        winnerIndex.set(controller.winnerIndex);
+      }
+
       return true;
     };
 
@@ -121,7 +129,7 @@ const wsCheckersClientFactory: WsClientFactory<WsCheckersClientMethods, RoomsWsC
       boardData: { subscribe: boardDataStore.subscribe },
       startDrag,
       stopDrag,
-      winnerIndex: null
+      winnerIndex
     };
   };
 

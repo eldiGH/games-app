@@ -26,7 +26,7 @@
     isCreating = true;
     try {
       const roomId = await client.createRoom();
-      goto(`/ships/${roomId}`);
+      goto(`rooms/${roomId}`);
     } finally {
       isCreating = false;
     }
@@ -36,7 +36,7 @@
     const client = $clientStore;
     if (!client) return;
 
-    goto(`/ships/${id}`);
+    goto(`rooms/${id}`);
   };
 </script>
 

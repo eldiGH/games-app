@@ -12,8 +12,12 @@ import type {
   WsHandler,
   WsClient,
   ReqWithPlayer,
-  WsSendHandler
+  WsSendHandler,
+  WsRankingsClient
 } from '../types';
+import { db } from '../db';
+import { defaultRankingFactory } from '../services/RankingsService';
+import type { GameType, Ranking } from '@prisma/client';
 
 const parseData = (data: RawData): AnyWsMessagesToServer => {
   const message: AnyWsMessagesToServer = JSON.parse(data.toString());
@@ -67,12 +71,20 @@ const wsClient = (socket: WebSocket, req: ReqWithPlayer): WsClient => {
   return { send, player, socket, waitForMessage, onClose, addSocketEventListenerOnce };
 };
 
-export const wsController = (path: string): WsController => {
+export const wsController = <T extends WsClient = WsClient>(
+  path: string,
+  clientTransformer?: (client: WsClient) => T | Promise<T>
+): WsController<T> => {
   const wss = new WebSocketServer({ noServer: true });
-  const hooks: WsHook[] = [];
+  const hooks: WsHook<T>[] = [];
 
-  wss.on('connection', (ws, req) => {
-    const socket = wsClient(ws, req as ReqWithPlayer);
+  wss.on('connection', async (ws, req) => {
+    let socket: T;
+    if (clientTransformer) {
+      socket = await clientTransformer(wsClient(ws, req as ReqWithPlayer));
+    } else {
+      socket = wsClient(ws, req as ReqWithPlayer) as T;
+    }
 
     ws.on('message', (data) => {
       try {
@@ -102,12 +114,62 @@ export const sendToAllClients = <T extends WsMessagesToClientType>(
 };
 
 export const messageFactory =
-  (wsController: WsController) =>
-  <Type extends WsMessagesToServerType, T extends WsMessageToServer<Type>, Data extends T['data']>(
-    type: Type,
-    handler: WsHandler<Data>
-  ) => {
+  <C extends WsClient = WsClient>(wsController: WsController<C>): WsMessageHandler<C> =>
+  (type, handler) => {
     wsController.hooks.push({ type, handler } as WsHook);
   };
 
-export type WsMessageHandler = ReturnType<typeof messageFactory>;
+export const updateRankingClients = async (clients: WsRankingsClient[]) => {
+  if (clients.length === 0) return;
+
+  const gameType = clients[0].player.gameType;
+
+  const sortedClients = [...clients].sort();
+  const ids = sortedClients.map(({ player }) => player.id);
+
+  console.log(ids);
+
+  const rankings = await db.ranking.findMany({
+    where: { AND: [{ game: gameType }, { playerId: { in: ids } }] }
+  });
+
+  rankings.sort();
+
+  let rankingIndex = 0;
+  for (const client of sortedClients) {
+    const ranking = rankings[rankingIndex];
+    if (!ranking) {
+      break;
+    }
+
+    if (ranking.playerId !== client.player.id) {
+      continue;
+    } else {
+      client.player.ranking = ranking.value;
+      rankingIndex++;
+    }
+  }
+};
+
+export const rankingsClientTransformer =
+  (gameType: GameType) =>
+  async (client: WsClient): Promise<WsRankingsClient> => {
+    let ranking: Omit<Ranking, 'id'> | null = await db.ranking.findFirst({
+      where: { playerId: client.player.id, game: gameType }
+    });
+
+    if (!ranking) {
+      ranking = defaultRankingFactory(gameType, client.player.id);
+    }
+
+    return { ...client, player: { ...client.player, ranking: ranking.value, gameType } };
+  };
+
+export type WsMessageHandler<C extends WsClient = WsClient> = <
+  Type extends WsMessagesToServerType,
+  T extends WsMessageToServer<Type>,
+  Data extends T['data']
+>(
+  type: Type,
+  handler: WsHandler<Data, C>
+) => void;

@@ -1,12 +1,14 @@
 import type { GameType } from '@prisma/client';
+import type { GameController, GameControllerFactory } from '@shared/types';
 import {
-  RoomStatus,
-  type GameController,
-  type GameControllerFactory,
-  type MoveData
-} from '@shared/types';
-import { sendToAllClients, type Room, type RoomManager, type WsMessageHandler } from '../helpers';
-import type { WsClient } from '../types';
+  sendToAllClients,
+  type Room,
+  type RoomManager,
+  type WsMessageHandler,
+  updateRankingClients
+} from '../helpers';
+import type { WsRankingsClient } from '../types';
+import { RankingsService } from '../services/RankingsService';
 
 interface GameWrapper {
   game: GameController;
@@ -14,15 +16,15 @@ interface GameWrapper {
 }
 
 export const handleGames = (
-  message: WsMessageHandler,
+  message: WsMessageHandler<WsRankingsClient>,
   roomsManager: RoomManager,
-  gameId: GameType,
+  gameType: GameType,
   gameControllerFactory: GameControllerFactory
 ) => {
   const games: GameWrapper[] = [];
 
   const getGameWrapperByPlayerClient = (
-    client: WsClient
+    client: WsRankingsClient
   ): { gameWrapper: GameWrapper; playerIndex: number } | null => {
     let playerIndex = -1;
     const gameWrapper = games.find(({ room }) => {
@@ -47,7 +49,7 @@ export const handleGames = (
     games.push(game);
   });
 
-  message('move', (client: WsClient, moveData: MoveData) => {
+  message('move', async (client, moveData) => {
     const gameWrapperData = getGameWrapperByPlayerClient(client);
     if (!gameWrapperData) return;
 
@@ -71,8 +73,22 @@ export const handleGames = (
     );
 
     if (game.winnerIndex !== null) {
-      room.status = RoomStatus.Full;
-      room.sendRoomData();
+      const winner = room.players[game.winnerIndex];
+      const loser = room.players[game.winnerIndex === 0 ? 1 : 0];
+
+      if (!winner || !loser) {
+        return;
+      }
+
+      await RankingsService.updateRankings(
+        winner.client.player.id,
+        loser.client.player.id,
+        gameType
+      );
+
+      await updateRankingClients([winner.client, loser.client]);
+
+      roomsManager.end(client, game.winnerIndex);
     }
   });
 };

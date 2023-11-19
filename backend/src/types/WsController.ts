@@ -1,4 +1,4 @@
-import type { Player } from '@prisma/client';
+import type { GameType, Player } from '@prisma/client';
 import type {
   WsMessagesToClientType,
   WsMessagesToServerType,
@@ -7,18 +7,18 @@ import type {
 } from '@shared/types';
 import type { Server, WebSocket } from 'ws';
 
-export interface WsController {
+export interface WsController<T extends WsClient = WsClient> {
   wss: Server;
   path: string;
-  hooks: WsHook[];
+  hooks: WsHook<T>[];
 }
 
-export interface WsHook {
+export interface WsHook<T extends WsClient = WsClient> {
   type: string;
-  handler: WsHandler;
+  handler: WsHandler<unknown, T>;
 }
 
-export type WsHandler<T = unknown> = (socket: WsClient, data: T) => void;
+export type WsHandler<T = unknown, C extends WsClient = WsClient> = (socket: C, data: T) => void;
 
 export type WsSendHandler = <T extends WsMessagesToClientType>(
   type: T,
@@ -34,4 +34,8 @@ export interface WsClient {
   ) => Promise<WsMessageToServer<T>['data']>;
   onClose: (callback: () => void) => void;
   addSocketEventListenerOnce: (type: 'close', callback: (this: WebSocket) => void) => void;
+}
+
+export interface WsRankingsClient extends WsClient {
+  player: Player & { ranking: number; gameType: GameType };
 }

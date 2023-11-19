@@ -1,6 +1,6 @@
 import { RoomStatus, type WsRoom } from '@shared/types';
 import type WebSocket from 'ws';
-import type { WsClient } from '../types';
+import type { WsRankingsClient } from '../types';
 
 export interface UpdateRequest {
   updateThisRoom: boolean;
@@ -12,40 +12,40 @@ export interface UpdateRequest {
 
 export interface Room {
   id: string;
-  leader: WsClient;
+  leader: WsRankingsClient;
   players: (PlayerInRoom | null)[];
-  playersInRoom: WsClient[];
+  playersInRoom: WsRankingsClient[];
   status: RoomStatus;
   readyState: boolean[];
-  leave: (client: WsClient) => UpdateRequest;
-  join: (client: WsClient) => UpdateRequest;
-  sit: (client: WsClient, slot: number) => UpdateRequest;
-  kick: (client: WsClient, slot: number) => UpdateRequest;
-  ready: (client: WsClient) => UpdateRequest;
-  unready: (client: WsClient) => UpdateRequest;
+  leave: (client: WsRankingsClient) => UpdateRequest;
+  join: (client: WsRankingsClient) => UpdateRequest;
+  sit: (client: WsRankingsClient, slot: number) => UpdateRequest;
+  kick: (client: WsRankingsClient, slot: number) => UpdateRequest;
+  ready: (client: WsRankingsClient) => UpdateRequest;
+  unready: (client: WsRankingsClient) => UpdateRequest;
   end: (winnerIndex: number) => UpdateRequest;
   sendRoomData: () => void;
 }
 
 export interface PlayerInRoom {
-  client: WsClient;
+  client: WsRankingsClient;
   isReady: boolean;
 }
 
 export interface RoomManager {
-  addRoom: (client: WsClient) => string;
-  joinRoom: (client: WsClient, id: string) => void;
-  leaveRoom: (client: WsClient) => void;
-  sit: (client: WsClient, index: number) => void;
-  kick: (client: WsClient, index: number) => void;
-  subscribeRoomList: (client: WsClient) => void;
-  unsubscribeRoomList: (client: WsClient) => void;
-  ready: (client: WsClient) => void;
-  unready: (client: WsClient) => void;
-  end: (client: WsClient, winnerIndex: number) => void;
+  addRoom: (client: WsRankingsClient) => string;
+  joinRoom: (client: WsRankingsClient, id: string) => void;
+  leaveRoom: (client: WsRankingsClient) => void;
+  sit: (client: WsRankingsClient, index: number) => void;
+  kick: (client: WsRankingsClient, index: number) => void;
+  subscribeRoomList: (client: WsRankingsClient) => void;
+  unsubscribeRoomList: (client: WsRankingsClient) => void;
+  ready: (client: WsRankingsClient) => void;
+  unready: (client: WsRankingsClient) => void;
+  end: (client: WsRankingsClient, winnerIndex: number) => void;
   onRoomStart: (callback: (room: Room) => void) => void;
-  getSubscriptionClientFromSocket: (socket: WebSocket) => WsClient | undefined;
-  getRoomClientFromSocket: (socket: WebSocket) => WsClient | undefined;
+  getSubscriptionClientFromSocket: (socket: WebSocket) => WsRankingsClient | undefined;
+  getRoomClientFromSocket: (socket: WebSocket) => WsRankingsClient | undefined;
 }
 
 const getRandomRoomId = (): string => {
@@ -84,7 +84,7 @@ const roomMapper = (room: Room): WsRoom => {
     ),
     playersInRoom: playersInRoom.map(({ player }) => ({
       nickname: player.nickname,
-      rating: 1000
+      rating: player.ranking
     })),
     status: status,
     time: 300
@@ -93,11 +93,11 @@ const roomMapper = (room: Room): WsRoom => {
 
 export const roomsManagerFactory = (playersCount: number) => {
   const rooms: Room[] = [];
-  const roomListSubscribers: WsClient[] = [];
+  const roomListSubscribers: WsRankingsClient[] = [];
 
   const onRoomStartEventHandlers: ((room: Room) => void)[] = [];
 
-  const roomFactory = (id: string, client: WsClient, playersCount: number): Room => {
+  const roomFactory = (id: string, client: WsRankingsClient, playersCount: number): Room => {
     const players: (PlayerInRoom | null)[] = [{ client, isReady: false }];
     const playersInRoom = [client];
     const leader = client;
@@ -141,7 +141,7 @@ export const roomsManagerFactory = (playersCount: number) => {
 
     const areAllPlayersReady = () => thisRoom.players.every((player) => player?.isReady);
 
-    const leave = (client: WsClient) => {
+    const leave = (client: WsRankingsClient) => {
       const updateRequest = updateRequestFactory();
 
       const playerInRoomIndex = thisRoom.playersInRoom.indexOf(client);
@@ -179,7 +179,7 @@ export const roomsManagerFactory = (playersCount: number) => {
       return updateRequest;
     };
 
-    const join = (client: WsClient) => {
+    const join = (client: WsRankingsClient) => {
       const updateRequest = updateRequestFactory();
 
       const currentRoom = getRoomByClient(client);
@@ -196,7 +196,7 @@ export const roomsManagerFactory = (playersCount: number) => {
       return updateRequest;
     };
 
-    const sit = (client: WsClient, index: number) => {
+    const sit = (client: WsRankingsClient, index: number) => {
       const updateRequest = updateRequestFactory();
 
       if (index < 0 || index > playersCount) return updateRequest;
@@ -217,7 +217,7 @@ export const roomsManagerFactory = (playersCount: number) => {
       return updateRequest;
     };
 
-    const kick = (client: WsClient, index: number) => {
+    const kick = (client: WsRankingsClient, index: number) => {
       const updateRequest = updateRequestFactory();
 
       if (index < 0 || index > playersCount) return updateRequest;
@@ -238,7 +238,7 @@ export const roomsManagerFactory = (playersCount: number) => {
       return updateRequest;
     };
 
-    const ready = (client: WsClient) => {
+    const ready = (client: WsRankingsClient) => {
       const updateRequest = updateRequestFactory();
 
       const player = thisRoom.players.find((player) => player?.client === client);
@@ -259,7 +259,7 @@ export const roomsManagerFactory = (playersCount: number) => {
       return updateRequest;
     };
 
-    const unready = (client: WsClient) => {
+    const unready = (client: WsRankingsClient) => {
       const updateRequest = updateRequestFactory();
 
       const player = thisRoom.players.find((player) => player?.client === client);
@@ -334,11 +334,11 @@ export const roomsManagerFactory = (playersCount: number) => {
 
   const getCurrentRoomsIds = () => rooms.map(({ id }) => id);
 
-  const getRoomByClient = (client: WsClient) =>
+  const getRoomByClient = (client: WsRankingsClient) =>
     rooms.find((room) => room.playersInRoom.includes(client));
   const getRoomById = (id: string) => rooms.find((room) => room.id === id);
 
-  const addRoom = (client: WsClient) => {
+  const addRoom = (client: WsRankingsClient) => {
     const currentRoom = getRoomByClient(client);
 
     if (currentRoom) {
@@ -360,7 +360,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     return newId;
   };
 
-  const joinRoom = (client: WsClient, id: string) => {
+  const joinRoom = (client: WsRankingsClient, id: string) => {
     const room = getRoomById(id);
 
     const isRoomUpdated = room?.join(client);
@@ -371,7 +371,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     }
   };
 
-  const leaveRoom = (client: WsClient) => {
+  const leaveRoom = (client: WsRankingsClient) => {
     const room = getRoomByClient(client);
 
     if (!room) return;
@@ -381,7 +381,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     update();
   };
 
-  const sit = (client: WsClient, index: number) => {
+  const sit = (client: WsRankingsClient, index: number) => {
     const room = getRoomByClient(client);
 
     const updateRequest = room?.sit(client, index);
@@ -389,7 +389,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     updateRequest?.update();
   };
 
-  const kick = (client: WsClient, index: number) => {
+  const kick = (client: WsRankingsClient, index: number) => {
     const room = getRoomByClient(client);
 
     const updateRequest = room?.kick(client, index);
@@ -397,7 +397,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     updateRequest?.update();
   };
 
-  const subscribeRoomList = (client: WsClient) => {
+  const subscribeRoomList = (client: WsRankingsClient) => {
     if (roomListSubscribers.includes(client)) return;
 
     roomListSubscribers.push(client);
@@ -405,28 +405,28 @@ export const roomsManagerFactory = (playersCount: number) => {
     client.send('roomsList', getRoomsInfo());
   };
 
-  const unsubscribeRoomList = (client: WsClient) => {
+  const unsubscribeRoomList = (client: WsRankingsClient) => {
     const index = roomListSubscribers.findIndex((sc) => sc === client);
     if (index === -1) return;
 
     roomListSubscribers.splice(index, 1);
   };
 
-  const ready = (client: WsClient) => {
+  const ready = (client: WsRankingsClient) => {
     const room = getRoomByClient(client);
     const updateRequest = room?.ready(client);
 
     updateRequest?.update();
   };
 
-  const unready = (client: WsClient) => {
+  const unready = (client: WsRankingsClient) => {
     const room = getRoomByClient(client);
     const updateRequest = room?.unready(client);
 
     updateRequest?.update();
   };
 
-  const end = (client: WsClient, winnerIndex: number) => {
+  const end = (client: WsRankingsClient, winnerIndex: number) => {
     const room = getRoomByClient(client);
     const updateRequest = room?.end(winnerIndex);
 
@@ -441,7 +441,7 @@ export const roomsManagerFactory = (playersCount: number) => {
     roomListSubscribers.find((client) => client.socket === socket);
 
   const getRoomClientFromSocket = (socket: WebSocket) => {
-    let client: undefined | WsClient = undefined;
+    let client: undefined | WsRankingsClient = undefined;
 
     rooms.find((room) => {
       client = room.playersInRoom.find((client) => client.socket === socket);
