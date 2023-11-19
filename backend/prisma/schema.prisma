@@ -49,7 +49,7 @@ model MatchHistory {
   loserId            Int
   loser              Player   @relation(name: "Loser", fields: [loserId], references: [id])
   loserRatingBefore  Int
-  transferedPoints   Int
+  transferredPoints  Int
   game               GameType
   date               DateTime @default(now())
 

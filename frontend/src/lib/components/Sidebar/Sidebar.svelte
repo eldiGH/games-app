@@ -38,9 +38,9 @@
                 <Text>Graj</Text>
               </Item>
             </Link>
-            <Link href="/chess/rankings">
+            <Link href="/chess/ranking">
               <Item>
-                <Text>Rankingi</Text>
+                <Text>Ranking</Text>
               </Item>
             </Link>
             <Link href="/chess/history">
@@ -66,9 +66,9 @@
                 <Text>Graj</Text>
               </Item>
             </Link>
-            <Link href="/checkers/rankings">
+            <Link href="/checkers/ranking">
               <Item>
-                <Text>Rankingi</Text>
+                <Text>Ranking</Text>
               </Item>
             </Link>
             <Link href="/checkers/history">
@@ -94,9 +94,9 @@
                 <Text>Graj</Text>
               </Item>
             </Link>
-            <Link href="/ships/rankings">
+            <Link href="/ships/ranking">
               <Item>
-                <Text>Rankingi</Text>
+                <Text>Ranking</Text>
               </Item>
             </Link>
             <Link href="/ships/history">

@@ -64,6 +64,7 @@
     "@types/ws": "^8.5.4",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
+    "date-fns": "^2.30.0",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-svelte3": "^4.0.0",
@@ -87,7 +88,7 @@
     "vitest": "^0.25.3"
   },
   "dependencies": {
-    "@prisma/client": "^4.10.1",
+    "@prisma/client": "4.15.0-integration-feat-client-esm.27",
     "@types/validator": "^13.7.12",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -95,7 +96,7 @@
     "express": "^4.18.2",
     "extensionless": "^1.1.0",
     "jsonwebtoken": "^9.0.0",
-    "prisma": "^4.10.1",
+    "prisma": "4.15.0-integration-feat-client-esm.27",
     "tsconfig-paths": "^4.1.2",
     "ws": "^8.12.0",
     "yup": "^1.0.0"

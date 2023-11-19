@@ -16,10 +16,6 @@
   $: isGameFinished =
     $winnerIndex !== null && $winnerIndex !== undefined && room.status === RoomStatus.Full;
 
-  $: {
-    console.log({ isGameFinished, winnerIndex: $winnerIndex });
-  }
-
   const getTextContent = (
     room: Room,
     client: RoomsWsWithWinner | null,

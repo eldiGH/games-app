@@ -61,7 +61,7 @@ export const RankingsService = {
         game: gameType,
         loserRatingBefore: loserRanking.value,
         winnerRatingBefore: winnerRanking.value,
-        transferedPoints: pointsToTransfer,
+        transferredPoints: pointsToTransfer,
         loserId,
         winnerId
       }

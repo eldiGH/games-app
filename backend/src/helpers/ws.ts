@@ -127,10 +127,8 @@ export const updateRankingClients = async (clients: WsRankingsClient[]) => {
   const sortedClients = [...clients].sort();
   const ids = sortedClients.map(({ player }) => player.id);
 
-  console.log(ids);
-
   const rankings = await db.ranking.findMany({
-    where: { AND: [{ game: gameType }, { playerId: { in: ids } }] }
+    where: { game: gameType, playerId: { in: ids } }
   });
 
   rankings.sort();
