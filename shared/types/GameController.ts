@@ -6,4 +6,7 @@ export interface GameController {
   move: (moveData: MoveData) => boolean;
 }
 
-export type GameControllerFactory<T extends GameController = GameController> = () => T;
+export type GameControllerFactory<
+  T extends GameController = GameController,
+  A extends unknown[] = []
+> = (...args: A) => T;

@@ -16,11 +16,11 @@
   $: enemyBoard = client?.enemyBoard;
   $: hasShips = client?.hasShips;
 
+  $: room = $clientStore?.room;
+
   const randomizeMyShips = () => {
     $clientStore?.randomizeShipPlacement();
   };
-
-  $: room = $clientStore?.room;
 
   $: {
     if ($clientStore) {
@@ -44,7 +44,6 @@
   <GameView
     horizontal
     client={$clientStore}
-    room={$room}
     additionalButtonsWhenSat={[{ content: 'Losuj statki', onClick: randomizeMyShips }]}
     disableReady={!$hasShips}
   >

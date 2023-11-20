@@ -1,4 +1,4 @@
-import { getCurrentPlayerMapper, getMyFriendsMapper } from '@shared/schemas';
+import { getCurrentPlayerMapper } from '@shared/schemas';
 import { controller, endpointFactory } from '../helpers';
 import { PlayersService } from '../services';
 
@@ -11,14 +11,5 @@ endpoint(
     const player = await PlayersService.findPlayerById(res.locals.player.id);
 
     res.send(getCurrentPlayerMapper(player));
-  }
-);
-
-endpoint(
-  { name: 'Get my friends', path: '/me/friends', method: 'get', auth: true },
-  async (_req, res) => {
-    const player = await PlayersService.getPlayerWithFriends(res.locals.player.id);
-
-    res.send(getMyFriendsMapper(player));
   }
 );

@@ -1,17 +1,18 @@
 <script lang="ts">
-  import type { WsCheckersClient } from '$lib/api/wsCheckers';
   import type { RoomsWsWithWinner } from '$lib/helpers';
   import { playerStore } from '$lib/stores';
-  import type { Room, RoomPlayer } from '$lib/types';
+  import type { RoomPlayer } from '$lib/types';
   import Loader from '../Loader/Loader.svelte';
   import MiddleInfoBox from './components/MiddleInfoBox.svelte';
   import PlayerInfo from './components/PlayerInfo.svelte';
 
-  export let room: Room | null | undefined;
   export let client: RoomsWsWithWinner | null;
   export let horizontal = false;
   export let additionalButtonsWhenSat: { content: string; onClick: () => void }[] = [];
   export let disableReady = false;
+
+  $: roomStore = client?.room;
+  $: room = $roomStore;
 
   let me: RoomPlayer | undefined | null;
   $: me = room?.players.find((player) => player && player.nickname === $playerStore?.nickname);
