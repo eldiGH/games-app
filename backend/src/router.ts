@@ -3,8 +3,14 @@ import { AuthController, PlayersController } from './controllers/index';
 import { authMiddleware, validationMiddlewareFactory } from './middlewares/index';
 import type { Controller, EndpointCallback, Middleware, Req, Res } from './types/index';
 import { MatchHistoryController } from './controllers/MatchHistoryController';
+import { RankingsController } from './controllers/RankingsController';
 
-const controllers: Controller[] = [AuthController, PlayersController, MatchHistoryController];
+const controllers: Controller[] = [
+  AuthController,
+  PlayersController,
+  MatchHistoryController,
+  RankingsController
+];
 
 export const router = Router();
 

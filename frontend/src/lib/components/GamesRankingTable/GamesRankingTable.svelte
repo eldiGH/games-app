@@ -1,32 +1,31 @@
 <script lang="ts">
-  import type { GetMatchHistoryResponse } from '@shared/schemas';
+  import type { GetRankingResponse } from '@shared/schemas';
   import DataTable, { Head, Body, Row, Cell, SortValue, Label } from '@smui/data-table';
-  import format from 'date-fns/format';
 
   import IconButton from '@smui/icon-button';
-  import { getMatchHistory } from '$lib/api/matchHistoryClient';
   import { onMount } from 'svelte';
   import type { GameType } from '@prisma/client';
   import Loader from '../Loader/Loader.svelte';
   import Card from '@smui/card';
+  import { getRankings } from '$lib/api/rankings.Client';
 
   export let title: string;
   export let gameType: GameType;
 
-  let data: GetMatchHistoryResponse | null = null;
+  let data: GetRankingResponse | null = null;
 
   enum ColumnName {
-    OpponentName = 'opponentData',
-    Result = 'result',
+    Player = 'player',
     Points = 'points',
-    Date = 'time'
+    Won = 'won',
+    Lost = 'lost'
   }
 
-  let sort: ColumnName = ColumnName.Date;
+  let sort: ColumnName = ColumnName.Points;
   let sortDirection: SortValue = SortValue.DESCENDING;
 
   const getData = async () => {
-    const response = await getMatchHistory(gameType);
+    const response = await getRankings(gameType);
 
     if (response.data) data = response.data;
   };
@@ -45,42 +44,40 @@
         <DataTable bind:sort bind:sortDirection sortable stickyHeader>
           <Head>
             <Row>
-              <Cell columnId={ColumnName.OpponentName}>
-                <Label>Przeciwnik</Label>
-                <IconButton class="material-icons">arrow_upward</IconButton>
-              </Cell>
-              <Cell columnId={ColumnName.Result}>
-                <Label>Wynik</Label>
-                <IconButton class="material-icons">arrow_upward</IconButton>
-              </Cell>
-              <Cell columnId={ColumnName.Points}>
-                <Label>Punkty</Label>
+              <Cell columnId={ColumnName.Player}>
+                <Label>Gracz</Label>
                 <IconButton class="material-icons">arrow_upward</IconButton>
               </Cell>
               <Cell
-                columnId={ColumnName.Date}
+                columnId={ColumnName.Points}
                 class="mdc-data-table__header-cell--sorted-descending"
               >
-                <Label>Data</Label>
+                <Label>Punkty</Label>
+                <IconButton class="material-icons">arrow_upward</IconButton>
+              </Cell>
+              <Cell columnId={ColumnName.Won}>
+                <Label>Zwycięstwa</Label>
+                <IconButton class="material-icons">arrow_upward</IconButton>
+              </Cell>
+              <Cell columnId={ColumnName.Lost}>
+                <Label>Porażki</Label>
                 <IconButton class="material-icons">arrow_upward</IconButton>
               </Cell>
             </Row>
           </Head>
           <Body>
-            {#each data as item (item.date)}
+            {#each data as item (item.player)}
               <Row>
-                <Cell>{item.opponent.name}</Cell>
-                <Cell style={`color: ${item.won ? 'lime' : 'red'}`}
-                  >{item.won ? 'Wygrana' : 'Porażka'}</Cell
-                >
-                <Cell numeric>{`${item.won ? '' : '-'}${item.transferredPoints}`}</Cell>
-                <Cell>{format(item.date, 'HH:mm dd.MM.yyyy')}</Cell>
+                <Cell>{item.player}</Cell>
+                <Cell numeric>{item.value}</Cell>
+                <Cell numeric>{item.won}</Cell>
+                <Cell numeric>{item.lost}</Cell>
               </Row>
             {/each}
           </Body>
         </DataTable>
       {:else}
-        <div class="header">Brak partii do pokazania</div>
+        <div class="header">Brak rankingów do pokazania</div>
       {/if}
     </Card>
   </div>

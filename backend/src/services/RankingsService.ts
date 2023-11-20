@@ -66,5 +66,12 @@ export const RankingsService = {
         winnerId
       }
     });
-  }
+  },
+
+  getRankingsForGame: (gameType: GameType) =>
+    db.ranking.findMany({
+      where: { game: gameType },
+      include: { player: { include: { _count: { select: { won: true, lost: true } } } } },
+      orderBy: { value: 'desc' }
+    })
 };

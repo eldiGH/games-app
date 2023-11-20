@@ -17,8 +17,6 @@ model Player {
   nickname      String         @unique @db.VarChar(20)
   createdAt     DateTime       @default(now())
   rankings      Ranking[]
-  friendships   Friendship[]   @relation(name: "Player")
-  friendFor     Friendship[]   @relation(name: "Friend")
   won           MatchHistory[] @relation(name: "Winner")
   lost          MatchHistory[] @relation(name: "Loser")
 
@@ -56,12 +54,3 @@ model MatchHistory {
   @@map("match_histories")
 }
 
-model Friendship {
-  id       Int    @id @default(autoincrement())
-  playerId Int
-  player   Player @relation(name: "Player", fields: [playerId], references: [id])
-  friendId Int
-  friend   Player @relation(name: "Friend", fields: [friendId], references: [id])
-
-  @@map("friendships")
-}

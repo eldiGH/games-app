@@ -3,3 +3,4 @@ export * from './Register';
 export * from './GetCurrentPlayer';
 export * from './GetMyFriends';
 export * from './GetMatchHistory';
+export * from './GetRanking';

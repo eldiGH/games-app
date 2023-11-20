@@ -3,4 +3,4 @@
   import { GameType } from '@prisma/client';
 </script>
 
-<GamesRankingTable title="Statki" gameType={GameType.SHIPS} />
+<GamesRankingTable title="Szachy" gameType={GameType.CHESS} />
