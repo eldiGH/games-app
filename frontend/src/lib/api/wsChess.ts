@@ -27,7 +27,7 @@ const calculateBoardData = (
         const piece = pieces[currentPieceIndex];
         currentPieceIndex++;
         cell.imgUrl = `/svg/chess/${piece.color}_${piece.type}.svg`;
-        cell.draggable = isMyTurn;
+        cell.draggable = isMyTurn && !!piece.possibleMoves.length;
       }
 
       if (markedFields && markedFields.at(currentMarkedFieldIndex)?.eq(x, y)) {

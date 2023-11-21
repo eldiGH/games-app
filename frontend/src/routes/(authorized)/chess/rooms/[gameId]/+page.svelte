@@ -7,8 +7,6 @@
 
   const client = getContext<ChessContext>(chessContextKey);
 
-  $: room = $client?.room;
-
   $: {
     if ($client) {
       $client.join($page.params.gameId);

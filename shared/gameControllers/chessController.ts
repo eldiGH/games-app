@@ -23,14 +23,307 @@ export interface ChessGameController extends GameController {
   getPiece: (position: Point) => Piece | undefined;
 }
 
-const DEFAULT_PIECES: readonly Piece[] = [] as const;
+const getDefaultPieces = (): Piece[] => {
+  return [
+    {
+      type: PieceType.ROOK,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 0,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.KNIGHT,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 1,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.BISHOP,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 2,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.QUEEN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 3,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.KING,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 4,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.BISHOP,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 5,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.KNIGHT,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 6,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.ROOK,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 7,
+        y: 0
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 0,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 1,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 2,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 3,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 4,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 5,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 6,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.WHITE,
+      position: new Point({
+        x: 7,
+        y: 1
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 0,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 1,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 2,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 3,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 4,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 5,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 6,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.PAWN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 7,
+        y: 6
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.ROOK,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 0,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.KNIGHT,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 1,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.BISHOP,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 2,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.QUEEN,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 3,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.KING,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 4,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.BISHOP,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 5,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.KNIGHT,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 6,
+        y: 7
+      }),
+      possibleMoves: []
+    },
+    {
+      type: PieceType.ROOK,
+      color: PieceColor.BLACK,
+      position: new Point({
+        x: 7,
+        y: 7
+      }),
+      possibleMoves: []
+    }
+  ];
+};
 
-export const chessControllerFactory: GameControllerFactory<ChessGameController> = () => {
-  let _pieces: Piece[] = [...DEFAULT_PIECES];
-  let _whiteCastle: Castle;
-  let _blackCastle: Castle;
-  let _turn: PieceColor;
-  let _enPassant: Point | undefined;
+export const chessControllerFactory: GameControllerFactory<ChessGameController, [boolean] | []> = (
+  calculateMoves = true
+) => {
+  let _pieces: Piece[] = getDefaultPieces();
+  let _whiteCastle: Castle = { kingSide: false, queenSide: false };
+  let _blackCastle: Castle = { kingSide: false, queenSide: false };
+  let _turn: PieceColor = PieceColor.WHITE;
+  let _enPassant: Point | undefined = undefined;
 
   let _winnerIndex: number | null = null;
 
@@ -334,7 +627,7 @@ export const chessControllerFactory: GameControllerFactory<ChessGameController> 
   };
 
   const copyGame = () => {
-    const copy = chessControllerFactory();
+    const copy = chessControllerFactory(false);
     copy.setState(_pieces, _whiteCastle, _blackCastle, _turn, _enPassant);
     return copy;
   };
@@ -349,7 +642,10 @@ export const chessControllerFactory: GameControllerFactory<ChessGameController> 
 
   const calculateAllPossibleMoves = () => {
     for (const piece of _pieces) {
-      if (piece.color !== _turn) continue;
+      if (piece.color !== _turn) {
+        piece.possibleMoves = [];
+        continue;
+      }
 
       piece.possibleMoves = possibleMoves(piece);
     }
@@ -362,14 +658,18 @@ export const chessControllerFactory: GameControllerFactory<ChessGameController> 
     turn: PieceColor,
     enPassant: Point | undefined
   ) => {
-    _pieces = pieces;
-    _whiteCastle = whiteCastle;
-    _blackCastle = blackCastle;
+    _blackCastle = { ...blackCastle };
+    _whiteCastle = { ...whiteCastle };
     _turn = turn;
-    _enPassant = enPassant;
+    _pieces = [...pieces.map((piece) => ({ ...piece, possibleMoves: [...piece.possibleMoves] }))];
+    _enPassant = enPassant ? new Point(enPassant.x, enPassant.y) : undefined;
 
     sortPieces();
   };
+
+  if (calculateMoves) {
+    calculateAllPossibleMoves();
+  }
 
   return {
     move,
@@ -381,7 +681,7 @@ export const chessControllerFactory: GameControllerFactory<ChessGameController> 
       return _winnerIndex;
     },
     get nextPlayerIndex() {
-      return 0;
+      return _turn === PieceColor.WHITE ? 0 : 1;
     },
     get pieces() {
       return _pieces;
